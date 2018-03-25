@@ -51,7 +51,6 @@ unsigned int staggersize = 0;
 unsigned int threads = 0;
 unsigned int noncesperthread;
 unsigned int selecttype = 0;
-unsigned int asyncmode = 0;
 unsigned long long starttime;
 int ofd, run, lastrun;
 
@@ -322,14 +321,13 @@ unsigned long long getMS() {
 }
 
 void usage(char **argv) {
-	printf("Usage: %s -k KEY [ -x CORE ] [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS] -a\n", argv[0]);
+	printf("Usage: %s -k KEY [ -x CORE ] [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS]\n", argv[0]);
         printf("   CORE:\n");
         printf("     0 - default core\n");
         printf("     1 - SSE2 core\n");
 #ifdef AVX2
         printf("     2 - AVX2 core\n");
 #endif
-	printf("   -a = ASYNC writer mode (will use 2x memory!)\n");
 	exit(-1);
 }
 
@@ -340,13 +338,8 @@ void *writecache(void *arguments) {
 
 	percent = (int)(100 * lastrun / nonces);
 
-	if(asyncmode == 1) {
-		printf("\33[2K\r%i Percent done. (ASYNC write)", percent);
-		fflush(stdout);
-	} else {
-		printf("\33[2K\r%i Percent done. (write)", percent);
-		fflush(stdout);
-	}
+    printf("\33[2K\r%i Percent done. (write)", percent);
+    fflush(stdout);
 
 	do {
 		int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);	// Dont write more than 100MB at once
@@ -379,12 +372,6 @@ int main(int argc, char **argv) {
 		// Ignore unknown argument
                 if(argv[i][0] != '-')
 			continue;
-
-		if(!strcmp(argv[i],"-a")) {
-			asyncmode=1;
-			printf("Async mode set.\n");
-			continue;
-		}
 
 		char *parse = NULL;
 		unsigned long long parsed;
@@ -517,7 +504,7 @@ int main(int argc, char **argv) {
 		printf("Adjusting total nonces to %u to match stagger size\n", nonces);
 	}
 
-	printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4 * (1 + asyncmode)), threads);
+	printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4), threads);
 
 	// Comment this out/change it if you really want more than 200 Threads
 	if(threads > 200) {
@@ -525,21 +512,11 @@ int main(int argc, char **argv) {
 		exit(-1);
 	}
 
-	if(asyncmode == 1) {
-		acache[0] = calloc( PLOT_SIZE, staggersize );
-		acache[1] = calloc( PLOT_SIZE, staggersize );
+	cache = calloc( PLOT_SIZE, staggersize );
 
-		if(acache[0] == NULL || acache[1] == NULL) {
-			printf("Error allocating memory. Try lower stagger size or removing ASYNC mode.\n");
-			exit(-1);
-		}
-	} else {
-		cache = calloc( PLOT_SIZE, staggersize );
-
-		if(cache == NULL) {
-			printf("Error allocating memory. Try lower stagger size.\n");
-			exit(-1);
-		}
+	if(cache == NULL) {
+		printf("Error allocating memory. Try lower stagger size.\n");
+		exit(-1);
 	}
 
 	char name[100];
@@ -562,10 +539,8 @@ int main(int argc, char **argv) {
 	pthread_t worker[threads], writeworker;
 	unsigned long long nonceoffset[threads];
 
-	int asyncbuf=0;
 	unsigned long long astarttime;
-	if(asyncmode == 1) cache=acache[asyncbuf];
-	else wcache=cache;
+	wcache=cache;
 
 	for(run = 0; run < nonces; run += staggersize) {
 		astarttime = getMS();
@@ -590,30 +565,16 @@ int main(int argc, char **argv) {
 
 		// Write plot to disk:
 		starttime=astarttime;
-		if(asyncmode == 1) {
-			if(run > 0) pthread_join(writeworker, NULL);
-			lastrun=run+staggersize;
-			wcache=cache;
-			if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
-				printf("Error creating thread. Out of memory? Try lower stagger size / less threads / remove async mode\n");
-				exit(-1);
-			}	
-			asyncbuf=1-asyncbuf;			
-			cache=acache[asyncbuf];
-		} else {
-			lastrun=run+staggersize;
-			if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
-				printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
-				exit(-1);
-			}
-			pthread_join(writeworker, NULL);
+		lastrun=run+staggersize;
+		if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
+			printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
+			exit(-1);
 		}
+		pthread_join(writeworker, NULL);
 
 		startnonce += staggersize;
 	}
 	
-	if(asyncmode == 1) pthread_join(writeworker, NULL);
-
 	close(ofd);
 
 	printf("\nFinished plotting.\n");
