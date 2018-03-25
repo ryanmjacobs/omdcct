@@ -207,10 +207,6 @@ unsigned long long getMS() {
 void usage(const char *progname) {
     fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] "
                     "[-t THREADS]\n", progname);
-
-    fprintf(stderr, "   CORE:\n");
-    fprintf(stderr, "     0 - default core\n");
-    fprintf(stderr, "     1 - SSE2 core\n");
     exit(-1);
 }
 
