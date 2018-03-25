@@ -4,8 +4,6 @@ linux64: plot plotavx2 optimize mine mine_pool_all mine_pool_share
 
 linux32: plot32 optimize32 mine32 mine_pool_all32 mine_pool_share32
 
-win64: optimize.exe
-
 all: linux64 linux32
 
 dist: linux64 linux32 win64
@@ -13,9 +11,6 @@ dist: linux64 linux32 win64
 	mv plot plotavx2 optimize mine mine_pool_all plot32 optimize32 mine32 mine_pool_all32 mine_pool_share mine_pool_share32 optimize.exe bin
 	cp mine_uray.sh mine_dev_v1.sh mine_dev_v2.sh bin
 	tar -czf dcct_miner.tgz *
-
-optimize.exe: optimize.c
-	x86_64-w64-mingw32-gcc-4.8 -D_FILE_OFFSET_BITS=64 -Wall -m64 -O2 -o optimize.exe optimize.c
 
 plot: plot.c shabal64.o helper64.o mshabal_sse4.o
 	gcc -Wall -m64 -O2 -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread -std=gnu99
