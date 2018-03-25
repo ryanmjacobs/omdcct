@@ -1,27 +1,27 @@
-CFLAGS=-O2 -D_FILE_OFFSET_BITS=64 -std=gnu99
+CFLAGS=-O2 -Wall -m64 -std=gnu99 -D_FILE_OFFSET_BITS=64
 
 all: plot optimize mine mine_pool_all mine_pool_share
 
 plot: plot.c shabal64.o helper64.o mshabal_sse4.o
-	gcc -Wall -m64 -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread
+	gcc -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread
 
 mine: mine.c shabal64.o helper64.o
-	gcc -Wall -m64 -DSOLO -o mine mine.c shabal64.o helper64.o -lpthread
+	gcc -DSOLO -o mine mine.c shabal64.o helper64.o -lpthread
 
 mine_pool_all: mine.c shabal64.o helper64.o
-	gcc -Wall -m64 -DURAY_POOL -o mine_pool_all mine.c shabal64.o helper64.o -lpthread
+	gcc -DURAY_POOL -o mine_pool_all mine.c shabal64.o helper64.o -lpthread
 
 mine_pool_share: mine.c shabal64.o helper64.o
-	gcc -Wall -m64 -DSHARE_POOL -o mine_pool_share mine.c shabal64.o helper64.o -lpthread
+	gcc -DSHARE_POOL -o mine_pool_share mine.c shabal64.o helper64.o -lpthread
 
 optimize: optimize.c helper64.o
-	gcc -Wall -m64 -o optimize optimize.c helper64.o
+	gcc -o optimize optimize.c helper64.o
 
 helper64.o: helper.c
-	gcc -Wall -m64 -c -o helper64.o helper.c
+	gcc -c -o helper64.o helper.c
 
 shabal64.o: shabal64.s
-	gcc -Wall -m64 -c -o shabal64.o shabal64.s
+	gcc -c -o shabal64.o shabal64.s
 
 clean:
 	rm -rf *.o
