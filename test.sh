@@ -11,7 +11,7 @@ expected=b4be195887ed7c88f9c171a38502fd61
 
 pred="$sum == $expected"
 if eval test $pred; then
-    echo "pass: $pred"; exit 0
+    echo -e "\e[32mpass: $pred"; exit 0
 else
-    echo "fail: $pred"; exit 1
+    echo -e "\e[31mfail: $pred"; exit 1
 fi
