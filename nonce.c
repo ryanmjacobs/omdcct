@@ -24,6 +24,65 @@ extern unsigned int staggersize;
   gendata[PLOT_SIZE + 14] = xv[1];\
   gendata[PLOT_SIZE + 15] = xv[0]
 
+void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long long cachepos) {
+    char final[32];
+    char gendata[16 + PLOT_SIZE];
+
+    char *xv = (char*)&addr;
+
+    gendata[PLOT_SIZE+0] = xv[7];
+    gendata[PLOT_SIZE+1] = xv[6];
+    gendata[PLOT_SIZE+2] = xv[5];
+    gendata[PLOT_SIZE+3] = xv[4];
+
+    gendata[PLOT_SIZE+4] = xv[3];
+    gendata[PLOT_SIZE+5] = xv[2];
+    gendata[PLOT_SIZE+6] = xv[1];
+    gendata[PLOT_SIZE+7] = xv[0];
+
+    xv = (char*)&nr;
+
+    gendata[PLOT_SIZE+8]  = xv[7];
+    gendata[PLOT_SIZE+9]  = xv[6];
+    gendata[PLOT_SIZE+10] = xv[5];
+    gendata[PLOT_SIZE+11] = xv[4];
+
+    gendata[PLOT_SIZE+12] = xv[3];
+    gendata[PLOT_SIZE+13] = xv[2];
+    gendata[PLOT_SIZE+14] = xv[1];
+    gendata[PLOT_SIZE+15] = xv[0];
+
+    shabal_context x;
+
+    for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
+        shabal_init(&x, 256);
+        int len = PLOT_SIZE + 16 - i;
+        if (len > HASH_CAP)
+            len = HASH_CAP;
+        shabal(&x, &gendata[i], len);
+        shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
+    }
+
+    shabal_init(&x, 256);
+    shabal(&x, gendata, 16 + PLOT_SIZE);
+    shabal_close(&x, 0, 0, final);
+
+    // XOR with final
+    unsigned long long *start = (unsigned long long*)gendata;
+    unsigned long long *fint = (unsigned long long*)&final;
+
+    for (int i = 0; i < PLOT_SIZE; i += 32) {
+        *start ^= fint[0]; start ++;
+        *start ^= fint[1]; start ++;
+        *start ^= fint[2]; start ++;
+        *start ^= fint[3]; start ++;
+    }
+
+    // Sort them:
+    for (int i = 0; i < PLOT_SIZE; i += 64)
+        memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
+}
+
 int mnonce(unsigned long long int addr,
     unsigned long long int nonce1,
     unsigned long long int nonce2,
@@ -102,63 +161,4 @@ int mnonce(unsigned long long int addr,
     }
 
     return 0;
-}
-
-void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long long cachepos) {
-    char final[32];
-    char gendata[16 + PLOT_SIZE];
-
-    char *xv = (char*)&addr;
-
-    gendata[PLOT_SIZE+0] = xv[7];
-    gendata[PLOT_SIZE+1] = xv[6];
-    gendata[PLOT_SIZE+2] = xv[5];
-    gendata[PLOT_SIZE+3] = xv[4];
-
-    gendata[PLOT_SIZE+4] = xv[3];
-    gendata[PLOT_SIZE+5] = xv[2];
-    gendata[PLOT_SIZE+6] = xv[1];
-    gendata[PLOT_SIZE+7] = xv[0];
-
-    xv = (char*)&nr;
-
-    gendata[PLOT_SIZE+8]  = xv[7];
-    gendata[PLOT_SIZE+9]  = xv[6];
-    gendata[PLOT_SIZE+10] = xv[5];
-    gendata[PLOT_SIZE+11] = xv[4];
-
-    gendata[PLOT_SIZE+12] = xv[3];
-    gendata[PLOT_SIZE+13] = xv[2];
-    gendata[PLOT_SIZE+14] = xv[1];
-    gendata[PLOT_SIZE+15] = xv[0];
-
-    shabal_context x;
-
-    for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
-        shabal_init(&x, 256);
-        int len = PLOT_SIZE + 16 - i;
-        if (len > HASH_CAP)
-            len = HASH_CAP;
-        shabal(&x, &gendata[i], len);
-        shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
-    }
-
-    shabal_init(&x, 256);
-    shabal(&x, gendata, 16 + PLOT_SIZE);
-    shabal_close(&x, 0, 0, final);
-
-    // XOR with final
-    unsigned long long *start = (unsigned long long*)gendata;
-    unsigned long long *fint = (unsigned long long*)&final;
-
-    for (int i = 0; i < PLOT_SIZE; i += 32) {
-        *start ^= fint[0]; start ++;
-        *start ^= fint[1]; start ++;
-        *start ^= fint[2]; start ++;
-        *start ^= fint[3]; start ++;
-    }
-
-    // Sort them:
-    for (int i = 0; i < PLOT_SIZE; i += 64)
-        memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
 }
