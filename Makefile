@@ -1,5 +1,6 @@
 CC?=gcc
-CFLAGS=-O2 -Wall -m64 -std=gnu99 -D_FILE_OFFSET_BITS=64 -march=native
+CFLAGS=-Wall -m64 -std=gnu99 -O2 -march=native\
+	   -D_FILE_OFFSET_BITS=64
 
 all: plot optimize mine mine_pool_all mine_pool_share
 
