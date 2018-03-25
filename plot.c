@@ -175,25 +175,24 @@ void *work_i(void *x_void_ptr) {
     unsigned long long *x_ptr = (unsigned long long *)x_void_ptr;
     unsigned long long i = *x_ptr;
 
-    unsigned int n;
-        for(n=0; n<noncesperthread; n++) {
-            if(sse2_supported()) {
-                if (n + 4 < noncesperthread)
-                {
-                    mnonce(addr,
-                          (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
-                          (unsigned long long)(i - startnonce + n + 0),
-                          (unsigned long long)(i - startnonce + n + 1),
-                          (unsigned long long)(i - startnonce + n + 2),
-                          (unsigned long long)(i - startnonce + n + 3));
+    for (int n=0; n<noncesperthread; n++) {
+        if (sse2_supported()) {
+            if (n + 4 < noncesperthread) {
+                mnonce(addr,
+                      (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
+                      (unsigned long long)(i - startnonce + n + 0),
+                      (unsigned long long)(i - startnonce + n + 1),
+                      (unsigned long long)(i - startnonce + n + 2),
+                      (unsigned long long)(i - startnonce + n + 3));
 
-                    n += 3;
-                } else
-                   nonce(addr,(i + n), (unsigned long long)(i - startnonce + n));
+                n += 3;
             } else {
-                nonce(addr,(i + n), (unsigned long long)(i - startnonce + n));
+               nonce(addr,(i + n), (unsigned long long)(i - startnonce + n));
             }
+        } else {
+            nonce(addr,(i + n), (unsigned long long)(i - startnonce + n));
         }
+    }
 
     return NULL;
 }
