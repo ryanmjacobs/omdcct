@@ -5,9 +5,9 @@ tmp="$(mktemp -d /tmp/plot.XXX)"
 trap "rm -rf $tmp" EXIT
 cd "$tmp"
 
-$pwd/plot -k 123 -s 0 -n 100
-sum="$(md5sum 123_0_100_100 | cut -f1 -d' ')"
-expected=e949c49f889d57499fd7a1aa579dd7d1
+$pwd/plot -k 123 -s 0 -n 10
+sum="$(md5sum 123_0_10_10 | cut -f1 -d' ')"
+expected=b4be195887ed7c88f9c171a38502fd61
 
 pred="$sum == $expected"
 if eval test $pred; then
