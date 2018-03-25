@@ -1,20 +1,21 @@
 CC?=gcc
 CFLAGS=-Wall -m64 -std=gnu99 -O2 -march=native\
 	   -D_FILE_OFFSET_BITS=64
+LDFLAGS=-lpthread
 
 all: plot optimize mine mine_pool_all mine_pool_share
 
 plot: plot.c shabal64.o helper64.o mshabal_sse4.o
-	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse4.o
 
 mine: mine.c shabal64.o helper64.o
-	$(CC) $(CFLAGS) -DSOLO -o mine mine.c shabal64.o helper64.o -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) -DSOLO -o mine mine.c shabal64.o helper64.o
 
 mine_pool_all: mine.c shabal64.o helper64.o
-	$(CC) $(CFLAGS) -DURAY_POOL -o mine_pool_all mine.c shabal64.o helper64.o -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) -DURAY_POOL -o mine_pool_all mine.c shabal64.o helper64.o
 
 mine_pool_share: mine.c shabal64.o helper64.o
-	$(CC) $(CFLAGS) -DSHARE_POOL -o mine_pool_share mine.c shabal64.o helper64.o -lpthread
+	$(CC) $(CFLAGS) $(LDFLAGS) -DSHARE_POOL -o mine_pool_share mine.c shabal64.o helper64.o
 
 optimize: optimize.c helper64.o
 	$(CC) $(CFLAGS) -o optimize optimize.c helper64.o
