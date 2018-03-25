@@ -1,5 +1,5 @@
 /*
-    Even faster plot generator for burscoin
+    Even faster plot generator for burstcoin
     Modified version originally written by Markus Tervooren
     Added code for mshabal/mshabal256 (SSE2 optimizations)
     by Cerr Janror <cerr.janror@gmail.com> : https://github.com/BurstTools/BurstSoftware.git
