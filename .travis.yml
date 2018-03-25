@@ -2,5 +2,8 @@ language: c
 compiler:
     - gcc
     - clang
-install: pthread
+addons:
+    apt:
+        packages:
+            - libpthread-stubs0-dev
 script: (make; ./test.sh)
