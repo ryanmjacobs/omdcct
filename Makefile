@@ -1,9 +1,9 @@
-CFLAGS=-D_FILE_OFFSET_BITS=64
+CFLAGS=-D_FILE_OFFSET_BITS=64 -std=gnu99
 
 all: plot optimize mine mine_pool_all mine_pool_share
 
 plot: plot.c shabal64.o helper64.o mshabal_sse4.o
-	gcc -Wall -m64 -O2 -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread -std=gnu99
+	gcc -Wall -m64 -O2 -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread
 
 mine: mine.c shabal64.o helper64.o
 	gcc -Wall -m64 -O2 -DSOLO -o mine mine.c shabal64.o helper64.o -lpthread
