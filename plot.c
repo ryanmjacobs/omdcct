@@ -204,9 +204,9 @@ unsigned long long getMS() {
     return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
 }
 
-void usage(char **argv) {
+void usage(const char *progname) {
     fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE]"
-                    "[-t THREADS]\n", argv[0]);
+                    "[-t THREADS]\n", progname);
 
     fprintf(stderr, "   CORE:\n");
     fprintf(stderr, "     0 - default core\n");
@@ -247,7 +247,7 @@ void *writecache(void *arguments) {
 
 int main(int argc, char **argv) {
     if(argc < 2)
-        usage(argv);
+        usage(argv[0]);
 
     int i;
     int startgiven = 0;
@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
         printf("Using original algorithm.\n");
 
     if (addr == 0)
-        usage(argv);
+        usage(argv[0]);
 
     // Autodetect threads
     if(threads == 0)
