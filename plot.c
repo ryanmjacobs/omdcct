@@ -261,7 +261,7 @@ void *writecache(void *arguments) {
     int h = (int)(m / 60);
     m -= h * 60;
 
-    printf("\33[2K\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
+    printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
     fflush(stdout);
 
     return NULL;
