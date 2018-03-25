@@ -82,20 +82,20 @@ int mnonce(unsigned long long int addr,
     SET_NONCE(gendata4, nonce4);
 
     mshabal_context x;
-    int i, len;
 
-    for (i = PLOT_SIZE; i > 0; i -= HASH_SIZE)
-    {
+    for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
+        sse4_mshabal_init(&x, 256);
 
-      sse4_mshabal_init(&x, 256);
+        int len = PLOT_SIZE + 16 - i;
+        if (len > HASH_CAP)
+            len = HASH_CAP;
 
-      len = PLOT_SIZE + 16 - i;
-      if (len > HASH_CAP)
-        len = HASH_CAP;
-
-      sse4_mshabal(&x, &gendata1[i], &gendata2[i], &gendata3[i], &gendata4[i], len);
-      sse4_mshabal_close(&x, 0, 0, 0, 0, 0, &gendata1[i - HASH_SIZE], &gendata2[i - HASH_SIZE], &gendata3[i - HASH_SIZE], &gendata4[i - HASH_SIZE]);
-
+        sse4_mshabal(&x, &gendata1[i], &gendata2[i], &gendata3[i], &gendata4[i], len);
+        sse4_mshabal_close(&x, 0, 0, 0, 0, 0,
+                &gendata1[i - HASH_SIZE],
+                &gendata2[i - HASH_SIZE],
+                &gendata3[i - HASH_SIZE],
+                &gendata4[i - HASH_SIZE]);
     }
 
     sse4_mshabal_init(&x, 256);
@@ -103,21 +103,19 @@ int mnonce(unsigned long long int addr,
     sse4_mshabal_close(&x, 0, 0, 0, 0, 0, final1, final2, final3, final4);
 
     // XOR with final
-    for (i = 0; i < PLOT_SIZE; i++)
-    {
-      gendata1[i] ^= (final1[i % 32]);
-      gendata2[i] ^= (final2[i % 32]);
-      gendata3[i] ^= (final3[i % 32]);
-      gendata4[i] ^= (final4[i % 32]);
+    for (int i = 0; i < PLOT_SIZE; i++) {
+        gendata1[i] ^= (final1[i % 32]);
+        gendata2[i] ^= (final2[i % 32]);
+        gendata3[i] ^= (final3[i % 32]);
+        gendata4[i] ^= (final4[i % 32]);
     }
 
     // Sort them:
-    for (i = 0; i < PLOT_SIZE; i += 64)
-    {
-      memmove(&cache[cachepos1 * 64 + (unsigned long long)i * staggersize], &gendata1[i], 64);
-      memmove(&cache[cachepos2 * 64 + (unsigned long long)i * staggersize], &gendata2[i], 64);
-      memmove(&cache[cachepos3 * 64 + (unsigned long long)i * staggersize], &gendata3[i], 64);
-      memmove(&cache[cachepos4 * 64 + (unsigned long long)i * staggersize], &gendata4[i], 64);
+    for (int i = 0; i < PLOT_SIZE; i += 64) {
+        memmove(&cache[cachepos1 * 64 + (unsigned long long)i * staggersize], &gendata1[i], 64);
+        memmove(&cache[cachepos2 * 64 + (unsigned long long)i * staggersize], &gendata2[i], 64);
+        memmove(&cache[cachepos3 * 64 + (unsigned long long)i * staggersize], &gendata3[i], 64);
+        memmove(&cache[cachepos4 * 64 + (unsigned long long)i * staggersize], &gendata4[i], 64);
     }
 
     return 0;
@@ -139,12 +137,11 @@ void nonce(unsigned long long int addr, unsigned long long int nonce, unsigned l
     gendata[PLOT_SIZE+12] = xv[3]; gendata[PLOT_SIZE+13] = xv[2]; gendata[PLOT_SIZE+14] = xv[1]; gendata[PLOT_SIZE+15] = xv[0];
 
     shabal_context x;
-    int i, len;
 
-    for(i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
+    for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
         shabal_init(&x, 256);
-        len = PLOT_SIZE + 16 - i;
-        if(len > HASH_CAP)
+        int len = PLOT_SIZE + 16 - i;
+        if (len > HASH_CAP)
             len = HASH_CAP;
         shabal(&x, &gendata[i], len);
         shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
@@ -154,12 +151,11 @@ void nonce(unsigned long long int addr, unsigned long long int nonce, unsigned l
     shabal(&x, gendata, 16 + PLOT_SIZE);
     shabal_close(&x, 0, 0, final);
 
-
     // XOR with final
     unsigned long long *start = (unsigned long long*)gendata;
     unsigned long long *fint = (unsigned long long*)&final;
 
-    for(i = 0; i < PLOT_SIZE; i += 32) {
+    for (int i = 0; i < PLOT_SIZE; i += 32) {
         *start ^= fint[0]; start ++;
         *start ^= fint[1]; start ++;
         *start ^= fint[2]; start ++;
@@ -167,7 +163,7 @@ void nonce(unsigned long long int addr, unsigned long long int nonce, unsigned l
     }
 
     // Sort them:
-    for(i = 0; i < PLOT_SIZE; i+=64)
+    for (int i = 0; i < PLOT_SIZE; i += 64)
         memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
 }
 
@@ -384,7 +380,7 @@ int main(int argc, char **argv) {
     for(run = 0; run < nonces; run += staggersize) {
         astarttime = getMS();
 
-        for(int i = 0; i < threads; i++) {
+        for (int i = 0; i < threads; i++) {
             nonceoffset[i] = startnonce + i * noncesperthread;
 
             if(pthread_create(&worker[i], NULL, work_i, &nonceoffset[i])) {
@@ -394,12 +390,12 @@ int main(int argc, char **argv) {
         }
 
         // Wait for Threads to finish;
-        for(int i=0; i<threads; i++) {
+        for(int i = 0; i < threads; i++) {
             pthread_join(worker[i], NULL);
         }
 
         // Run leftover nonces
-        for(int i=threads * noncesperthread; i<staggersize; i++)
+        for(int i = threads * noncesperthread; i<staggersize; i++)
             nonce(addr, startnonce + i, (unsigned long long)i);
 
         // Write plot to disk:
