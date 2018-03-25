@@ -1,10 +1,10 @@
 CC?=gcc
-CFLAGS=-O2 -Wall -m64 -std=gnu99 -D_FILE_OFFSET_BITS=64
+CFLAGS=-O2 -Wall -m64 -std=gnu99 -D_FILE_OFFSET_BITS=64 -march=native
 
 all: plot optimize mine mine_pool_all mine_pool_share
 
 plot: plot.c shabal64.o helper64.o mshabal_sse4.o
-	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -march=native -lpthread
+	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse4.o -lpthread
 
 mine: mine.c shabal64.o helper64.o
 	$(CC) $(CFLAGS) -DSOLO -o mine mine.c shabal64.o helper64.o -lpthread
