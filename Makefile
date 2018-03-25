@@ -1,6 +1,6 @@
 CC?=gcc
 CFLAGS=-Wall -m64 -std=gnu99 -O2 -march=native\
-	   -D_FILE_OFFSET_BITS=64
+	   -D_FILE_OFFSET_BITS=64 -lpthread
 LDFLAGS=-lpthread
 
 all: plot mine mine_pool_all mine_pool_share
