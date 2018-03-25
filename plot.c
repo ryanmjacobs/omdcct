@@ -205,10 +205,12 @@ unsigned long long getMS() {
 }
 
 void usage(char **argv) {
-    printf("Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS]\n", argv[0]);
-        printf("   CORE:\n");
-        printf("     0 - default core\n");
-        printf("     1 - SSE2 core\n");
+    fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE]"
+                    "[-t THREADS]\n", argv[0]);
+
+    fprintf(stderr, "   CORE:\n");
+    fprintf(stderr, "     0 - default core\n");
+    fprintf(stderr, "     1 - SSE2 core\n");
     exit(-1);
 }
 
