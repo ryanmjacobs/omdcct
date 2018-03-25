@@ -1,17 +1,17 @@
 /*
-	Even faster plot generator for burscoin
-	Modified version originally written by Markus Tervooren
-	Added code for mshabal/mshabal256 (SSE2 optimizations)
-	by Cerr Janror <cerr.janror@gmail.com> : https://github.com/BurstTools/BurstSoftware.git
+    Even faster plot generator for burscoin
+    Modified version originally written by Markus Tervooren
+    Added code for mshabal/mshabal256 (SSE2 optimizations)
+    by Cerr Janror <cerr.janror@gmail.com> : https://github.com/BurstTools/BurstSoftware.git
 
-	Author: Mirkic7 <mirkic7@hotmail.com>
-	Burst: BURST-RQW7-3HNW-627D-3GAEV
+    Author: Mirkic7 <mirkic7@hotmail.com>
+    Burst: BURST-RQW7-3HNW-627D-3GAEV
 
-	Original author: Markus Tervooren <info@bchain.info>
-	Burst: BURST-R5LP-KEL9-UYLG-GFG6T
+    Original author: Markus Tervooren <info@bchain.info>
+    Burst: BURST-R5LP-KEL9-UYLG-GFG6T
 
-	Implementation of Shabal is taken from:
-	http://www.shabal.com/?p=198
+    Implementation of Shabal is taken from:
+    http://www.shabal.com/?p=198
 */
 
 #define USE_MULTI_SHABAL
@@ -125,57 +125,57 @@ int mnonce(unsigned long long int addr,
 
 
 void nonce(unsigned long long int addr, unsigned long long int nonce, unsigned long long cachepos) {
-	char final[32];
-	char gendata[16 + PLOT_SIZE];
+    char final[32];
+    char gendata[16 + PLOT_SIZE];
 
-	char *xv = (char*)&addr;
-	
-	gendata[PLOT_SIZE] = xv[7]; gendata[PLOT_SIZE+1] = xv[6]; gendata[PLOT_SIZE+2] = xv[5]; gendata[PLOT_SIZE+3] = xv[4];
-	gendata[PLOT_SIZE+4] = xv[3]; gendata[PLOT_SIZE+5] = xv[2]; gendata[PLOT_SIZE+6] = xv[1]; gendata[PLOT_SIZE+7] = xv[0];
+    char *xv = (char*)&addr;
 
-	xv = (char*)&nonce;
+    gendata[PLOT_SIZE] = xv[7]; gendata[PLOT_SIZE+1] = xv[6]; gendata[PLOT_SIZE+2] = xv[5]; gendata[PLOT_SIZE+3] = xv[4];
+    gendata[PLOT_SIZE+4] = xv[3]; gendata[PLOT_SIZE+5] = xv[2]; gendata[PLOT_SIZE+6] = xv[1]; gendata[PLOT_SIZE+7] = xv[0];
 
-	gendata[PLOT_SIZE+8] = xv[7]; gendata[PLOT_SIZE+9] = xv[6]; gendata[PLOT_SIZE+10] = xv[5]; gendata[PLOT_SIZE+11] = xv[4];
-	gendata[PLOT_SIZE+12] = xv[3]; gendata[PLOT_SIZE+13] = xv[2]; gendata[PLOT_SIZE+14] = xv[1]; gendata[PLOT_SIZE+15] = xv[0];
+    xv = (char*)&nonce;
 
-	shabal_context x;
-	int i, len;
+    gendata[PLOT_SIZE+8] = xv[7]; gendata[PLOT_SIZE+9] = xv[6]; gendata[PLOT_SIZE+10] = xv[5]; gendata[PLOT_SIZE+11] = xv[4];
+    gendata[PLOT_SIZE+12] = xv[3]; gendata[PLOT_SIZE+13] = xv[2]; gendata[PLOT_SIZE+14] = xv[1]; gendata[PLOT_SIZE+15] = xv[0];
 
-	for(i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
-		shabal_init(&x, 256);
-		len = PLOT_SIZE + 16 - i;
-		if(len > HASH_CAP)
-			len = HASH_CAP;
-		shabal(&x, &gendata[i], len);
-		shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
-	}
-	
-	shabal_init(&x, 256);
-	shabal(&x, gendata, 16 + PLOT_SIZE);
-	shabal_close(&x, 0, 0, final);
+    shabal_context x;
+    int i, len;
+
+    for(i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
+        shabal_init(&x, 256);
+        len = PLOT_SIZE + 16 - i;
+        if(len > HASH_CAP)
+            len = HASH_CAP;
+        shabal(&x, &gendata[i], len);
+        shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
+    }
+
+    shabal_init(&x, 256);
+    shabal(&x, gendata, 16 + PLOT_SIZE);
+    shabal_close(&x, 0, 0, final);
 
 
-	// XOR with final
-	unsigned long long *start = (unsigned long long*)gendata;
-	unsigned long long *fint = (unsigned long long*)&final;
+    // XOR with final
+    unsigned long long *start = (unsigned long long*)gendata;
+    unsigned long long *fint = (unsigned long long*)&final;
 
-	for(i = 0; i < PLOT_SIZE; i += 32) {
-		*start ^= fint[0]; start ++;
-		*start ^= fint[1]; start ++;
-		*start ^= fint[2]; start ++;
-		*start ^= fint[3]; start ++;
-	}
+    for(i = 0; i < PLOT_SIZE; i += 32) {
+        *start ^= fint[0]; start ++;
+        *start ^= fint[1]; start ++;
+        *start ^= fint[2]; start ++;
+        *start ^= fint[3]; start ++;
+    }
 
-	// Sort them:
-	for(i = 0; i < PLOT_SIZE; i+=64)
-		memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
+    // Sort them:
+    for(i = 0; i < PLOT_SIZE; i+=64)
+        memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
 }
 
 void *work_i(void *x_void_ptr) {
-	unsigned long long *x_ptr = (unsigned long long *)x_void_ptr;
-	unsigned long long i = *x_ptr;
+    unsigned long long *x_ptr = (unsigned long long *)x_void_ptr;
+    unsigned long long i = *x_ptr;
 
-	unsigned int n;
+    unsigned int n;
         for(n=0; n<noncesperthread; n++) {
             if(sse2_supported() == 1) {
                 if (n + 4 < noncesperthread)
@@ -195,121 +195,121 @@ void *work_i(void *x_void_ptr) {
             }
         }
 
-	return NULL;
+    return NULL;
 }
 
 unsigned long long getMS() {
-	struct timeval time;
-	gettimeofday(&time, NULL);
-	return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
 }
 
 void usage(char **argv) {
-	printf("Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS]\n", argv[0]);
+    printf("Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS]\n", argv[0]);
         printf("   CORE:\n");
         printf("     0 - default core\n");
         printf("     1 - SSE2 core\n");
-	exit(-1);
+    exit(-1);
 }
 
 void *writecache(void *arguments) {
-	unsigned long long bytes = (unsigned long long) staggersize * PLOT_SIZE;
-	unsigned long long position = 0;
-	int percent;
+    unsigned long long bytes = (unsigned long long) staggersize * PLOT_SIZE;
+    unsigned long long position = 0;
+    int percent;
 
-	percent = (int)(100 * lastrun / nonces);
+    percent = (int)(100 * lastrun / nonces);
 
     printf("\33[2K\r%i Percent done. (write)", percent);
     fflush(stdout);
 
-	do {
-		int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);	// Dont write more than 100MB at once
-		position += b;
-		bytes -= b;
-	} while(bytes > 0);
+    do {
+        int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);	// Dont write more than 100MB at once
+        position += b;
+        bytes -= b;
+    } while(bytes > 0);
 
-	unsigned long long ms = getMS() - starttime;
-	
-	percent = (int)(100 * lastrun / nonces);
-	double minutes = (double)ms / (1000000 * 60);
-	int speed = (int)(staggersize / minutes);
-	int m = (int)(nonces - run) / speed;
-	int h = (int)(m / 60);
-	m -= h * 60;
+    unsigned long long ms = getMS() - starttime;
 
-	printf("\33[2K\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
-	fflush(stdout);
+    percent = (int)(100 * lastrun / nonces);
+    double minutes = (double)ms / (1000000 * 60);
+    int speed = (int)(staggersize / minutes);
+    int m = (int)(nonces - run) / speed;
+    int h = (int)(m / 60);
+    m -= h * 60;
 
-	return NULL;
+    printf("\33[2K\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
+    fflush(stdout);
+
+    return NULL;
 }
 
 int main(int argc, char **argv) {
-	if(argc < 2)
-		usage(argv);
+    if(argc < 2)
+        usage(argv);
 
-	int i;
-	int startgiven = 0;
+    int i;
+    int startgiven = 0;
     for(i = 1; i < argc; i++) {
-		// Ignore unknown argument
+        // Ignore unknown argument
                 if(argv[i][0] != '-')
-			continue;
+            continue;
 
-		char *parse = NULL;
-		unsigned long long parsed;
-		char param = argv[i][1];
-		int modified;
+        char *parse = NULL;
+        unsigned long long parsed;
+        char param = argv[i][1];
+        int modified;
 
-		if(argv[i][2] == 0) {
-			if(i < argc - 1)
-				parse = argv[++i];
-		} else {
-			parse = &(argv[i][2]);
-		}
-		if(parse != NULL) {
-			modified = 0;
-			parsed = strtoull(parse, 0, 10);
-			switch(parse[strlen(parse) - 1]) {
-				case 't':
-				case 'T':
-					parsed *= 1000;
-				case 'g':
-				case 'G':
-					parsed *= 1000;
-				case 'm':
-				case 'M':
-					parsed *= 1000;
-				case 'k':
-				case 'K':
-					parsed *= 1000;
-					modified = 1;
-			}
-			switch(param) {
-				case 'k':
-					addr = parsed;
-					break;
-				case 's':
-					startnonce = parsed;
-					startgiven = 1;
-					break;
-				case 'n':
-					if(modified == 1) {
-						nonces = (unsigned long long)(parsed / PLOT_SIZE);
-					} else {
-						nonces = parsed;
-					}	
-					break;
-				case 'm':
-					if(modified == 1) {
-						staggersize = (unsigned long long)(parsed / PLOT_SIZE);
-					} else {
-						staggersize = parsed;
-					}	
-					break;
-				case 't':
-					threads = parsed;
-					break;
-			}			
-		}
+        if(argv[i][2] == 0) {
+            if(i < argc - 1)
+                parse = argv[++i];
+        } else {
+            parse = &(argv[i][2]);
+        }
+        if(parse != NULL) {
+            modified = 0;
+            parsed = strtoull(parse, 0, 10);
+            switch(parse[strlen(parse) - 1]) {
+                case 't':
+                case 'T':
+                    parsed *= 1000;
+                case 'g':
+                case 'G':
+                    parsed *= 1000;
+                case 'm':
+                case 'M':
+                    parsed *= 1000;
+                case 'k':
+                case 'K':
+                    parsed *= 1000;
+                    modified = 1;
+            }
+            switch(param) {
+                case 'k':
+                    addr = parsed;
+                    break;
+                case 's':
+                    startnonce = parsed;
+                    startgiven = 1;
+                    break;
+                case 'n':
+                    if(modified == 1) {
+                        nonces = (unsigned long long)(parsed / PLOT_SIZE);
+                    } else {
+                        nonces = parsed;
+                    }
+                    break;
+                case 'm':
+                    if(modified == 1) {
+                        staggersize = (unsigned long long)(parsed / PLOT_SIZE);
+                    } else {
+                        staggersize = parsed;
+                    }
+                    break;
+                case 't':
+                    threads = parsed;
+                    break;
+            }
+        }
     }
 
     if(sse2_supported())
@@ -317,136 +317,136 @@ int main(int argc, char **argv) {
     else
         printf("Using original algorithm.\n");
 
-	if (addr == 0)
-		usage(argv);
+    if (addr == 0)
+        usage(argv);
 
-	// Autodetect threads
-	if(threads == 0)
-		threads = getNumberOfCores();
+    // Autodetect threads
+    if(threads == 0)
+        threads = getNumberOfCores();
 
-	// No startnonce given: Just pick random one
-	if(startgiven == 0) {
-		// Just some randomness
-		srand(time(NULL));
-		startnonce = (unsigned long long)rand() * (1 << 30) + rand();
-	}
+    // No startnonce given: Just pick random one
+    if(startgiven == 0) {
+        // Just some randomness
+        srand(time(NULL));
+        startnonce = (unsigned long long)rand() * (1 << 30) + rand();
+    }
 
-	// No nonces given: use whole disk
-	if(nonces == 0) {
-		unsigned long long fs = freespace("./");
-		if(fs <= FREE_SPACE) {
-			printf("Not enough free space on device\n");
-			exit(-1);
-		}
-		fs -= FREE_SPACE;
-				
-		nonces = (unsigned long long)(fs / PLOT_SIZE);
-	}
+    // No nonces given: use whole disk
+    if(nonces == 0) {
+        unsigned long long fs = freespace("./");
+        if(fs <= FREE_SPACE) {
+            printf("Not enough free space on device\n");
+            exit(-1);
+        }
+        fs -= FREE_SPACE;
 
-	// Autodetect stagger size
-	if(staggersize == 0) {
-		// use 80% of memory
-		unsigned long long memstag = (freemem() * 0.8) / PLOT_SIZE;
+        nonces = (unsigned long long)(fs / PLOT_SIZE);
+    }
 
-		if(nonces < memstag) {
-			// Small stack: all at once
-			staggersize = nonces;
-		} else {
-			// Determine stagger that (almost) fits nonces
-			for(i = memstag; i >= 1000; i--) {
-				if( (nonces % i) < 1000) {
-					staggersize = i;
-					nonces-= (nonces % i);
-					i = 0;
-				}
-			}
-		}
-	}
+    // Autodetect stagger size
+    if(staggersize == 0) {
+        // use 80% of memory
+        unsigned long long memstag = (freemem() * 0.8) / PLOT_SIZE;
 
-	// 32 Bit and above 4GB?
-	if( sizeof( void* ) < 8 ) {
-		if( staggersize > 15000 ) {
-			printf("Cant use stagger sizes above 15000 with 32-bit version\n");
-			exit(-1);
-		}
-	}
+        if(nonces < memstag) {
+            // Small stack: all at once
+            staggersize = nonces;
+        } else {
+            // Determine stagger that (almost) fits nonces
+            for(i = memstag; i >= 1000; i--) {
+                if( (nonces % i) < 1000) {
+                    staggersize = i;
+                    nonces-= (nonces % i);
+                    i = 0;
+                }
+            }
+        }
+    }
 
-	// Adjust according to stagger size
-	if(nonces % staggersize != 0) {
-		nonces -= nonces % staggersize;
-		nonces += staggersize;
-		printf("Adjusting total nonces to %u to match stagger size\n", nonces);
-	}
+    // 32 Bit and above 4GB?
+    if( sizeof( void* ) < 8 ) {
+        if( staggersize > 15000 ) {
+            printf("Cant use stagger sizes above 15000 with 32-bit version\n");
+            exit(-1);
+        }
+    }
 
-	printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4), threads);
+    // Adjust according to stagger size
+    if(nonces % staggersize != 0) {
+        nonces -= nonces % staggersize;
+        nonces += staggersize;
+        printf("Adjusting total nonces to %u to match stagger size\n", nonces);
+    }
 
-	cache = calloc( PLOT_SIZE, staggersize );
+    printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4), threads);
 
-	if(cache == NULL) {
-		printf("Error allocating memory. Try lower stagger size.\n");
-		exit(-1);
-	}
+    cache = calloc( PLOT_SIZE, staggersize );
 
-	char name[100];
-	sprintf(name, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
+    if(cache == NULL) {
+        printf("Error allocating memory. Try lower stagger size.\n");
+        exit(-1);
+    }
 
-	ofd = open(name, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-	if(ofd < 0) {
-		printf("Error opening file %s\n", name);
-		exit(0);
-	}
+    char name[100];
+    sprintf(name, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
 
-	// Threads:
-	noncesperthread = (unsigned long)(staggersize / threads);
+    ofd = open(name, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if(ofd < 0) {
+        printf("Error opening file %s\n", name);
+        exit(0);
+    }
 
-	if(noncesperthread == 0) {
-		threads = staggersize;
-		noncesperthread = 1;
-	}
+    // Threads:
+    noncesperthread = (unsigned long)(staggersize / threads);
 
-	pthread_t worker[threads], writeworker;
-	unsigned long long nonceoffset[threads];
+    if(noncesperthread == 0) {
+        threads = staggersize;
+        noncesperthread = 1;
+    }
 
-	unsigned long long astarttime;
-	wcache=cache;
+    pthread_t worker[threads], writeworker;
+    unsigned long long nonceoffset[threads];
 
-	for(run = 0; run < nonces; run += staggersize) {
-		astarttime = getMS();
+    unsigned long long astarttime;
+    wcache=cache;
 
-		for(i = 0; i < threads; i++) {
-			nonceoffset[i] = startnonce + i * noncesperthread;
+    for(run = 0; run < nonces; run += staggersize) {
+        astarttime = getMS();
 
-			if(pthread_create(&worker[i], NULL, work_i, &nonceoffset[i])) {
-				printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
-				exit(-1);
-			}
-		}
+        for(i = 0; i < threads; i++) {
+            nonceoffset[i] = startnonce + i * noncesperthread;
 
-		// Wait for Threads to finish;
-		for(i=0; i<threads; i++) {
-			pthread_join(worker[i], NULL);
-		}
-		
-		// Run leftover nonces
-		for(i=threads * noncesperthread; i<staggersize; i++)
-			nonce(addr, startnonce + i, (unsigned long long)i);
+            if(pthread_create(&worker[i], NULL, work_i, &nonceoffset[i])) {
+                printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
+                exit(-1);
+            }
+        }
 
-		// Write plot to disk:
-		starttime=astarttime;
-		lastrun=run+staggersize;
-		if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
-			printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
-			exit(-1);
-		}
-		pthread_join(writeworker, NULL);
+        // Wait for Threads to finish;
+        for(i=0; i<threads; i++) {
+            pthread_join(worker[i], NULL);
+        }
 
-		startnonce += staggersize;
-	}
-	
-	close(ofd);
+        // Run leftover nonces
+        for(i=threads * noncesperthread; i<staggersize; i++)
+            nonce(addr, startnonce + i, (unsigned long long)i);
 
-	printf("\nFinished plotting.\n");
-	return 0;
+        // Write plot to disk:
+        starttime=astarttime;
+        lastrun=run+staggersize;
+        if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
+            printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
+            exit(-1);
+        }
+        pthread_join(writeworker, NULL);
+
+        startnonce += staggersize;
+    }
+
+    close(ofd);
+
+    printf("\nFinished plotting.\n");
+    return 0;
 }
 
 

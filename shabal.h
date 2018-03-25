@@ -68,11 +68,11 @@ typedef unsigned long shabal_u32;
  * Context instances contain no pointer.
  */
 typedef struct {
-	unsigned char buf[64];
-	size_t ptr;
-	shabal_u32 state[12 + 16 + 16];
-	shabal_u32 Wlow, Whigh;
-	unsigned out_size;
+    unsigned char buf[64];
+    size_t ptr;
+    shabal_u32 state[12 + 16 + 16];
+    shabal_u32 Wlow, Whigh;
+    unsigned out_size;
 } shabal_context;
 
 /**

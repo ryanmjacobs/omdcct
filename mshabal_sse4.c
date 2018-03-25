@@ -80,21 +80,21 @@ extern "C" {
         _mm_srli_epi32(B[j], 15));
 
 #define PP(xa0, xa1, xb0, xb1, xb2, xb3, xc, xm)   do { \
-		__m128i tt; \
-		tt = _mm_or_si128(_mm_slli_epi32(xa1, 15), \
-			_mm_srli_epi32(xa1, 17)); \
-		tt = _mm_add_epi32(_mm_slli_epi32(tt, 2), tt); \
-		tt = _mm_xor_si128(_mm_xor_si128(xa0, tt), xc); \
-		tt = _mm_add_epi32(_mm_slli_epi32(tt, 1), tt); \
-		tt = _mm_xor_si128( \
-			_mm_xor_si128(tt, xb1), \
-			_mm_xor_si128(_mm_andnot_si128(xb3, xb2), xm)); \
-		xa0 = tt; \
-		tt = xb0; \
-		tt = _mm_or_si128(_mm_slli_epi32(tt, 1), \
-			_mm_srli_epi32(tt, 31)); \
-		xb0 = _mm_xor_si128(tt, _mm_xor_si128(xa0, one)); \
-            	} while (0)
+        __m128i tt; \
+        tt = _mm_or_si128(_mm_slli_epi32(xa1, 15), \
+            _mm_srli_epi32(xa1, 17)); \
+        tt = _mm_add_epi32(_mm_slli_epi32(tt, 2), tt); \
+        tt = _mm_xor_si128(_mm_xor_si128(xa0, tt), xc); \
+        tt = _mm_add_epi32(_mm_slli_epi32(tt, 1), tt); \
+        tt = _mm_xor_si128( \
+            _mm_xor_si128(tt, xb1), \
+            _mm_xor_si128(_mm_andnot_si128(xb3, xb2), xm)); \
+        xa0 = tt; \
+        tt = xb0; \
+        tt = _mm_or_si128(_mm_slli_epi32(tt, 1), \
+            _mm_srli_epi32(tt, 31)); \
+        xb0 = _mm_xor_si128(tt, _mm_xor_si128(xa0, one)); \
+                } while (0)
 
       PP(A[0x0], A[0xB], B[0x0], B[0xD], B[0x9], B[0x6], C[0x8], M(0x0));
       PP(A[0x1], A[0x0], B[0x1], B[0xE], B[0xA], B[0x7], C[0x7], M(0x1));
@@ -185,11 +185,11 @@ extern "C" {
       A[0x0] = _mm_add_epi32(A[0x0], C[0x3]);
 
 #define SWAP_AND_SUB(xb, xc, xm)   do { \
-		__m128i tmp; \
-		tmp = xb; \
-		xb = _mm_sub_epi32(xc, xm); \
-		xc = tmp; \
-            	} while (0)
+        __m128i tmp; \
+        tmp = xb; \
+        xb = _mm_sub_epi32(xc, xm); \
+        xc = tmp; \
+                } while (0)
 
       SWAP_AND_SUB(B[0x0], C[0x0], M(0x0));
       SWAP_AND_SUB(B[0x1], C[0x1], M(0x1));

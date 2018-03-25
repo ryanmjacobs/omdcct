@@ -94,26 +94,26 @@ int hostname_to_ip(char * hostname , char* ip) {
 }
 
 unsigned long long freespace(char *path) {
-	struct statvfs fData;
+    struct statvfs fData;
 
-	if(statvfs(path,&fData) != 0) {
-		printf("Failed to get free disk space on %s\n", path);
-		return 0;
-	}
-	return (unsigned long long)fData.f_bsize * fData.f_bfree;
+    if(statvfs(path,&fData) != 0) {
+        printf("Failed to get free disk space on %s\n", path);
+        return 0;
+    }
+    return (unsigned long long)fData.f_bsize * fData.f_bfree;
 }
 
 // Free memory. Taken from http://stackoverflow.com/questions/2513505/how-to-get-available-memory-c-g
 unsigned long long freemem() {
 #ifdef _WIN32
-	MEMORYSTATUSEX status;
-	status.dwLength = sizeof(status);
-	GlobalMemoryStatusEx(&status);
-	return status.ullTotalPhys;
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+    return status.ullTotalPhys;
 #else
-	long pages = sysconf(_SC_PHYS_PAGES);
-	long page_size = sysconf(_SC_PAGE_SIZE);
-	return (unsigned long long)pages * page_size;
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    return (unsigned long long)pages * page_size;
 #endif
 }
 

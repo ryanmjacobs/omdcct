@@ -3,13 +3,13 @@
         Author: Markus Tervooren <info@bchain.info>
         BURST-R5LP-KEL9-UYLG-GFG6T
 
-	With code written by Uray Meiviar <uraymeiviar@gmail.com>
-	BURST-8E8K-WQ2F-ZDZ5-FQWHX
+    With code written by Uray Meiviar <uraymeiviar@gmail.com>
+    BURST-8E8K-WQ2F-ZDZ5-FQWHX
 
         Implementation of Shabal is taken from:
         http://www.shabal.com/?p=198
 
-	Usage: ./mine <node ip> [<plot dir> <plot dir> ..]
+    Usage: ./mine <node ip> [<plot dir> <plot dir> ..]
 */
 
 #define _GNU_SOURCE
@@ -93,498 +93,498 @@ char readbuffer[BUFFERSIZE + 1];
 char writebuffer[BUFFERSIZE + 1];
 
 char *contactWallet(char *req, int bytes) {
-	int s = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    int s = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
 
-	struct sockaddr_in ss;
-	ss.sin_addr.s_addr = inet_addr( nodeip );
-	ss.sin_family = AF_INET;
-	ss.sin_port = htons( nodeport );
+    struct sockaddr_in ss;
+    ss.sin_addr.s_addr = inet_addr( nodeip );
+    ss.sin_family = AF_INET;
+    ss.sin_port = htons( nodeport );
 
-	struct timeval tv;
-	tv.tv_sec =  15;
-	tv.tv_usec = 0;
+    struct timeval tv;
+    tv.tv_sec =  15;
+    tv.tv_usec = 0;
 
-	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
-	if(connect(s, (struct sockaddr*)&ss, sizeof(struct sockaddr_in)) == -1) {
-		printf("\nError sending result to node                           \n");
-		fflush(stdout);
-		return NULL;
-	}
+    if(connect(s, (struct sockaddr*)&ss, sizeof(struct sockaddr_in)) == -1) {
+        printf("\nError sending result to node                           \n");
+        fflush(stdout);
+        return NULL;
+    }
 
-	int written = 0;
-	do {
-		int w = write(s, &req[written], bytes - written);
-		if(w < 1) {
-			printf("\nError sending request to node                     \n");
-			return NULL;
-		}
-		written += w;
-	} while(written < bytes);
+    int written = 0;
+    do {
+        int w = write(s, &req[written], bytes - written);
+        if(w < 1) {
+            printf("\nError sending request to node                     \n");
+            return NULL;
+        }
+        written += w;
+    } while(written < bytes);
 
-	int bytesread = 0, rbytes;
-	do {
-		rbytes = read(s, &readbuffer[bytesread], BUFFERSIZE - bytesread);
-		if(bytes > 0)
-			bytesread += rbytes;
+    int bytesread = 0, rbytes;
+    do {
+        rbytes = read(s, &readbuffer[bytesread], BUFFERSIZE - bytesread);
+        if(bytes > 0)
+            bytesread += rbytes;
 
-	} while(rbytes > 0 && bytesread < BUFFERSIZE);
+    } while(rbytes > 0 && bytesread < BUFFERSIZE);
 
-	close(s);
+    close(s);
 
-	// Finish read
-	readbuffer[bytesread] = 0;
+    // Finish read
+    readbuffer[bytesread] = 0;
 
-	// locate HTTP header end
-	char *find = strstr(readbuffer, "\r\n\r\n");
+    // locate HTTP header end
+    char *find = strstr(readbuffer, "\r\n\r\n");
 
-	// No header found
-	if(find == NULL)
-		return NULL;
+    // No header found
+    if(find == NULL)
+        return NULL;
 
-	return find + 4;
+    return find + 4;
 }
 
 void procscoop(unsigned long long nonce, int n, char *data, unsigned long long account_id) {
-	char *cache;
-	char sig[32 + 64];
+    char *cache;
+    char sig[32 + 64];
 
-	cache = data;
+    cache = data;
 
-	int v;	
+    int v;
 
-	memmove(sig, signature, 32);
+    memmove(sig, signature, 32);
 
-	for(v=0; v<n; v++) {
-		memmove(&sig[32], cache, 64);
+    for(v=0; v<n; v++) {
+        memmove(&sig[32], cache, 64);
 
-		shabal_context x;
-		shabal_init(&x, 256);
-		shabal(&x, sig, 64 + 32);
+        shabal_context x;
+        shabal_init(&x, 256);
+        shabal(&x, sig, 64 + 32);
 
-		char res[32];
+        char res[32];
 
-		shabal_close(&x, 0, 0, res);
+        shabal_close(&x, 0, 0, res);
 
-		unsigned long long *wertung = (unsigned long long*)res;
+        unsigned long long *wertung = (unsigned long long*)res;
 
 // Sharepool: Submit all deadlines below threshold
 // Uray_pool: Submit best deadline
 // Solo: Best deadline, but not low quality deadlines
 
 #ifdef SHARE_POOL
-		// For sharepool just store results for later submission	
-		if(*wertung < targetdeadline * baseTarget && sharefill < SHARECACHE) {
-			sharekey[sharefill] = account_id;
-			sharenonce[sharefill] = nonce;
-			sharefill++;
-		}
+        // For sharepool just store results for later submission
+        if(*wertung < targetdeadline * baseTarget && sharefill < SHARECACHE) {
+            sharekey[sharefill] = account_id;
+            sharenonce[sharefill] = nonce;
+            sharefill++;
+        }
 #else
-		if(bestn == 0 || *wertung <= best) {
-			best = *wertung;
-			bestn = nonce;
+        if(bestn == 0 || *wertung <= best) {
+            best = *wertung;
+            bestn = nonce;
 
 #ifdef SOLO
-			if(best < baseTarget * MAXDEADLINE) {		// Has to be this good before we inform the node
+            if(best < baseTarget * MAXDEADLINE) {		// Has to be this good before we inform the node
 #endif
 
 
 #ifdef URAY_POOL
-	                        int bytes = sprintf(writebuffer, "POST /burst?requestType=submitNonce&accountId=%llu&nonce=%llu HTTP/1.0\r\nConnection: close\r\n\r\n", account_id,bestn);
+                            int bytes = sprintf(writebuffer, "POST /burst?requestType=submitNonce&accountId=%llu&nonce=%llu HTTP/1.0\r\nConnection: close\r\n\r\n", account_id,bestn);
 #else
-				int bytes = sprintf(writebuffer, "POST /burst?requestType=submitNonce&secretPhrase=%s&nonce=%llu HTTP/1.0\r\nConnection: close\r\n\r\n", passphrase, bestn);
+                int bytes = sprintf(writebuffer, "POST /burst?requestType=submitNonce&secretPhrase=%s&nonce=%llu HTTP/1.0\r\nConnection: close\r\n\r\n", passphrase, bestn);
 #endif
-				char *buffer = contactWallet( writebuffer, bytes );
+                char *buffer = contactWallet( writebuffer, bytes );
 
-				if(buffer != NULL) {
-					char *rdeadline = strstr(buffer, "\"deadline\":");
-					if(rdeadline != NULL) {
-						rdeadline += 11;
-						char *end = strstr(rdeadline, "}");
-						if(end != NULL) {	
-							// Parse and check if we have a better deadline
-							unsigned long long ndeadline = strtoull(rdeadline, 0, 10);
-							if(ndeadline < deadline || deadline == 0)
-								deadline = ndeadline;
-						}
-					} else {
-						printf("\nWalet reported no deadline.\n");
-					}
+                if(buffer != NULL) {
+                    char *rdeadline = strstr(buffer, "\"deadline\":");
+                    if(rdeadline != NULL) {
+                        rdeadline += 11;
+                        char *end = strstr(rdeadline, "}");
+                        if(end != NULL) {
+                            // Parse and check if we have a better deadline
+                            unsigned long long ndeadline = strtoull(rdeadline, 0, 10);
+                            if(ndeadline < deadline || deadline == 0)
+                                deadline = ndeadline;
+                        }
+                    } else {
+                        printf("\nWalet reported no deadline.\n");
+                    }
 #ifdef SOLO
-					// Deadline too high? Passphrase may be wrong.
-					if(deadline > MAXDEADLINE) {
-						printf("\nYour deadline is larger than it should be. Check if you put the correct passphrase to passphrases.txt.\n");
-						fflush(stdout);
-					}
+                    // Deadline too high? Passphrase may be wrong.
+                    if(deadline > MAXDEADLINE) {
+                        printf("\nYour deadline is larger than it should be. Check if you put the correct passphrase to passphrases.txt.\n");
+                        fflush(stdout);
+                    }
 #endif
 
-				}
+                }
 #ifdef SOLO
-			}
+            }
 #endif
-		}
+        }
 
 #endif
-		nonce++;
-		cache += 64;
-	}
+        nonce++;
+        cache += 64;
+    }
 }
 
 
 void *work_i(void *x_void_ptr) {
         char *x_ptr = (char*)x_void_ptr;
 
-	char *cache = (char*) malloc(CACHESIZE * HASH_SIZE * 2);
+    char *cache = (char*) malloc(CACHESIZE * HASH_SIZE * 2);
 
-	if(cache == NULL) {
-		printf("\nError allocating memory                         \n");
-		exit(-1);
-	}
+    if(cache == NULL) {
+        printf("\nError allocating memory                         \n");
+        exit(-1);
+    }
 
 
-	DIR *d;
-	struct dirent *dir;
-	d = opendir(x_ptr);
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(x_ptr);
 
-	if (d) {
-		while ((dir = readdir(d)) != NULL) {
-			unsigned long long key, nonce, nonces, stagger, n;
-	
-			char fullname[512];
-			strcpy(fullname, x_ptr);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            unsigned long long key, nonce, nonces, stagger, n;
 
-			if(sscanf(dir->d_name, "%llu_%llu_%llu_%llu", &key, &nonce, &nonces, &stagger)) {
-				// Does path end with a /? If not, add it.
-				if( fullname[ strlen( x_void_ptr ) ] == '/' ) {
-					strcpy(&fullname[ strlen( x_void_ptr ) ], dir->d_name);
-				} else {
-					fullname[ strlen( x_void_ptr ) ] = '/';
-					strcpy(&fullname[ strlen( x_void_ptr ) + 1 ], dir->d_name);
-				}
+            char fullname[512];
+            strcpy(fullname, x_ptr);
 
-				int fh = open(fullname, O_RDONLY);
+            if(sscanf(dir->d_name, "%llu_%llu_%llu_%llu", &key, &nonce, &nonces, &stagger)) {
+                // Does path end with a /? If not, add it.
+                if( fullname[ strlen( x_void_ptr ) ] == '/' ) {
+                    strcpy(&fullname[ strlen( x_void_ptr ) ], dir->d_name);
+                } else {
+                    fullname[ strlen( x_void_ptr ) ] = '/';
+                    strcpy(&fullname[ strlen( x_void_ptr ) + 1 ], dir->d_name);
+                }
 
-				if(fh < 0) {
+                int fh = open(fullname, O_RDONLY);
+
+                if(fh < 0) {
                                         printf("\nError opening file %s                             \n", fullname);
                                         fflush(stdout);
-				}
+                }
 
-				unsigned long long offset = stagger * scoop * HASH_SIZE * 2;
-				unsigned long long size = stagger * HASH_SIZE * 2;
+                unsigned long long offset = stagger * scoop * HASH_SIZE * 2;
+                unsigned long long size = stagger * HASH_SIZE * 2;
 
-				for(n=0; n<nonces; n+=stagger) {
-					// Read one Scoop out of this block:
-					// start to start+size in steps of CACHESIZE * HASH_SIZE * 2
+                for(n=0; n<nonces; n+=stagger) {
+                    // Read one Scoop out of this block:
+                    // start to start+size in steps of CACHESIZE * HASH_SIZE * 2
 
-					unsigned long long start = n * HASH_CAP * HASH_SIZE * 2 + offset, i;
-					unsigned long long noffset = 0;
-					for(i = start; i < start + size; i += CACHESIZE * HASH_SIZE * 2) {
-						unsigned int readsize = CACHESIZE * HASH_SIZE * 2;
-						if(readsize > start + size - i)
-							readsize = start + size - i;
+                    unsigned long long start = n * HASH_CAP * HASH_SIZE * 2 + offset, i;
+                    unsigned long long noffset = 0;
+                    for(i = start; i < start + size; i += CACHESIZE * HASH_SIZE * 2) {
+                        unsigned int readsize = CACHESIZE * HASH_SIZE * 2;
+                        if(readsize > start + size - i)
+                            readsize = start + size - i;
 
-						int bytes = 0, b;
-						do {
-							b = pread(fh, &cache[bytes], readsize - bytes, i);
-							bytes += b;
-						} while(bytes < readsize && b > 0);	// Read until cache is filled (or file ended)
-			
-						if(b != 0) {
-							procscoop(n + nonce + noffset, readsize / (HASH_SIZE * 2), cache, key);	// Process block
+                        int bytes = 0, b;
+                        do {
+                            b = pread(fh, &cache[bytes], readsize - bytes, i);
+                            bytes += b;
+                        } while(bytes < readsize && b > 0);	// Read until cache is filled (or file ended)
 
-							// Lock and add to totals
-							pthread_mutex_lock(&byteLock);
-							bytesRead += readsize;
-							pthread_mutex_unlock(&byteLock);
-						}
+                        if(b != 0) {
+                            procscoop(n + nonce + noffset, readsize / (HASH_SIZE * 2), cache, key);	// Process block
 
-						noffset += CACHESIZE;
-					}
-			
-					if(stopThreads) {	// New block while processing: Stop.
-						close(fh);
-						closedir(d);
-						free(cache);
-						return NULL;	
-					}
-				}
-				close(fh);
-			}
-		}
-		closedir(d);
-	}
-	free(cache);
-	return NULL;
+                            // Lock and add to totals
+                            pthread_mutex_lock(&byteLock);
+                            bytesRead += readsize;
+                            pthread_mutex_unlock(&byteLock);
+                        }
+
+                        noffset += CACHESIZE;
+                    }
+
+                    if(stopThreads) {	// New block while processing: Stop.
+                        close(fh);
+                        closedir(d);
+                        free(cache);
+                        return NULL;
+                    }
+                }
+                close(fh);
+            }
+        }
+        closedir(d);
+    }
+    free(cache);
+    return NULL;
 }
 
 int pollNode() {
 
-	// Share-pool works differently
+    // Share-pool works differently
 #ifdef SHARE_POOL
-	int bytes = sprintf(writebuffer, "GET /pool/getMiningInfo HTTP/1.0\r\nHost: %s:%i\r\nConnection: close\r\n\r\n", nodeip, nodeport);
+    int bytes = sprintf(writebuffer, "GET /pool/getMiningInfo HTTP/1.0\r\nHost: %s:%i\r\nConnection: close\r\n\r\n", nodeip, nodeport);
 #else
-	int bytes = sprintf(writebuffer, "POST /burst?requestType=getMiningInfo HTTP/1.0\r\nConnection: close\r\n\r\n");
+    int bytes = sprintf(writebuffer, "POST /burst?requestType=getMiningInfo HTTP/1.0\r\nConnection: close\r\n\r\n");
 #endif
 
-	char *buffer = contactWallet( writebuffer, bytes );
+    char *buffer = contactWallet( writebuffer, bytes );
 
-	if(buffer == NULL)
-		return 0;
+    if(buffer == NULL)
+        return 0;
 
-	// Parse result
+    // Parse result
 #ifdef SHARE_POOL
-	char *rbaseTarget = strstr(buffer, "\"baseTarget\": \"");
-	char *rheight = strstr(buffer, "\"height\": \"");
-	char *generationSignature = strstr(buffer, "\"generationSignature\": \"");
-	char *tdl = strstr(buffer, "\"targetDeadline\": \"");
+    char *rbaseTarget = strstr(buffer, "\"baseTarget\": \"");
+    char *rheight = strstr(buffer, "\"height\": \"");
+    char *generationSignature = strstr(buffer, "\"generationSignature\": \"");
+    char *tdl = strstr(buffer, "\"targetDeadline\": \"");
 
-	if(rbaseTarget == NULL || rheight == NULL || generationSignature == NULL || tdl == NULL)
-		return 0;
+    if(rbaseTarget == NULL || rheight == NULL || generationSignature == NULL || tdl == NULL)
+        return 0;
 
-	char *endBaseTarget = strstr(rbaseTarget + 15, "\"");
-	char *endHeight = strstr(rheight + 11, "\"");
-	char *endGenerationSignature = strstr(generationSignature + 24, "\"");
-	char *endtdl = strstr(tdl + 19, "\"");
+    char *endBaseTarget = strstr(rbaseTarget + 15, "\"");
+    char *endHeight = strstr(rheight + 11, "\"");
+    char *endGenerationSignature = strstr(generationSignature + 24, "\"");
+    char *endtdl = strstr(tdl + 19, "\"");
 
-	if(endBaseTarget == NULL || endHeight == NULL || endGenerationSignature == NULL || endtdl == NULL)
-		return 0;
+    if(endBaseTarget == NULL || endHeight == NULL || endGenerationSignature == NULL || endtdl == NULL)
+        return 0;
 
-	// Set endpoints
-	endBaseTarget[0] = 0;
-	endHeight[0] = 0;
-	endGenerationSignature[0] = 0;
-	endtdl[0] = 0;
-	
-	// Parse
-	if(xstr2strr(signature, 33, generationSignature + 24) < 0) {
-		printf("\nNode response: Error decoding generationsignature          	\n");
-		fflush(stdout);
-		return 0;
-	}
+    // Set endpoints
+    endBaseTarget[0] = 0;
+    endHeight[0] = 0;
+    endGenerationSignature[0] = 0;
+    endtdl[0] = 0;
 
-	height = strtoull(rheight + 11, 0, 10);
-	baseTarget = strtoull(rbaseTarget + 15, 0, 10);
-	targetdeadline = strtoull(tdl + 19, 0, 10);
+    // Parse
+    if(xstr2strr(signature, 33, generationSignature + 24) < 0) {
+        printf("\nNode response: Error decoding generationsignature          	\n");
+        fflush(stdout);
+        return 0;
+    }
+
+    height = strtoull(rheight + 11, 0, 10);
+    baseTarget = strtoull(rbaseTarget + 15, 0, 10);
+    targetdeadline = strtoull(tdl + 19, 0, 10);
 #else
-	char *rbaseTarget = strstr(buffer, "\"baseTarget\":\"");
-	char *rheight = strstr(buffer, "\"height\":\"");
-	char *generationSignature = strstr(buffer, "\"generationSignature\":\"");
-	if(rbaseTarget == NULL || rheight == NULL || generationSignature == NULL)
-		return 0;
+    char *rbaseTarget = strstr(buffer, "\"baseTarget\":\"");
+    char *rheight = strstr(buffer, "\"height\":\"");
+    char *generationSignature = strstr(buffer, "\"generationSignature\":\"");
+    if(rbaseTarget == NULL || rheight == NULL || generationSignature == NULL)
+        return 0;
 
-	char *endBaseTarget = strstr(rbaseTarget + 14, "\"");
-	char *endHeight = strstr(rheight + 10, "\"");
-	char *endGenerationSignature = strstr(generationSignature + 23, "\"");
-	if(endBaseTarget == NULL || endHeight == NULL || endGenerationSignature == NULL)
-		return 0;
+    char *endBaseTarget = strstr(rbaseTarget + 14, "\"");
+    char *endHeight = strstr(rheight + 10, "\"");
+    char *endGenerationSignature = strstr(generationSignature + 23, "\"");
+    if(endBaseTarget == NULL || endHeight == NULL || endGenerationSignature == NULL)
+        return 0;
 
-	// Set endpoints
-	endBaseTarget[0] = 0;
-	endHeight[0] = 0;
-	endGenerationSignature[0] = 0;
-	
-	// Parse
-	if(xstr2strr(signature, 33, generationSignature + 23) < 0) {
-		printf("\nNode response: Error decoding generationsignature          	\n");
-		fflush(stdout);
-		return 0;
-	}
+    // Set endpoints
+    endBaseTarget[0] = 0;
+    endHeight[0] = 0;
+    endGenerationSignature[0] = 0;
 
-	height = strtoull(rheight + 10, 0, 10);
-	baseTarget = strtoull(rbaseTarget + 14, 0, 10);
+    // Parse
+    if(xstr2strr(signature, 33, generationSignature + 23) < 0) {
+        printf("\nNode response: Error decoding generationsignature          	\n");
+        fflush(stdout);
+        return 0;
+    }
+
+    height = strtoull(rheight + 10, 0, 10);
+    baseTarget = strtoull(rbaseTarget + 14, 0, 10);
 #endif
 
-	return 1;
+    return 1;
 }
 
 void update() {
-	// Try until we get a result.
-	while(pollNode() == 0) {
-		printf("\nCould not get mining info from Node. Will retry..             \n");
-		fflush(stdout);
-		struct timespec wait;
-		wait.tv_sec = 1;
-		wait.tv_nsec = 0;
-		nanosleep(&wait, NULL);
-	};
+    // Try until we get a result.
+    while(pollNode() == 0) {
+        printf("\nCould not get mining info from Node. Will retry..             \n");
+        fflush(stdout);
+        struct timespec wait;
+        wait.tv_sec = 1;
+        wait.tv_nsec = 0;
+        nanosleep(&wait, NULL);
+    };
 }
 
 int main(int argc, char **argv) {
-	int i;
-	if(argc < 3) {
-		printf("Usage: ./mine <node url> [<plot dir> <plot dir> ..]\n");
-		exit(-1);
-	}
+    int i;
+    if(argc < 3) {
+        printf("Usage: ./mine <node url> [<plot dir> <plot dir> ..]\n");
+        exit(-1);
+    }
 
 #ifdef SOLO
-	// Reading passphrase from file
-	int pf = open( "passphrases.txt", O_RDONLY );
-	if( pf < 0 ) {
-		printf("Could not find file passphrases.txt\nThis file should contain the passphrase used to create the plotfiles\n");
-		exit(-1);
-	}
-	
-	int bytes = read( pf, passphrase, 2000 );
+    // Reading passphrase from file
+    int pf = open( "passphrases.txt", O_RDONLY );
+    if( pf < 0 ) {
+        printf("Could not find file passphrases.txt\nThis file should contain the passphrase used to create the plotfiles\n");
+        exit(-1);
+    }
 
-	// Replace spaces with +
-	for( i=0; i<bytes; i++ ) {
-		if( passphrase[i] == ' ' )
-			passphrase[i] = '+';
+    int bytes = read( pf, passphrase, 2000 );
 
-		// end on newline
-		if( passphrase[i] == '\n' || passphrase[i] == '\r')
-			passphrase[i] = 0;
-	}
+    // Replace spaces with
+    for( i=0; i<bytes; i++ ) {
+        if( passphrase[i] == ' ' )
+            passphrase[i] = '+';
 
-	passphrase[bytes] = 0;
+        // end on newline
+        if( passphrase[i] == '\n' || passphrase[i] == '\r')
+            passphrase[i] = 0;
+    }
+
+    passphrase[bytes] = 0;
 #endif
 
-	// Check if all directories exist:
-	struct stat d = {0};
+    // Check if all directories exist:
+    struct stat d = {0};
 
-	for(i = 2; i < argc; i++) {
-		if ( stat( argv[i], &d) ) {
-			printf( "Plot directory %s does not exist\n", argv[i] );
-			exit(-1);
-		} else {
-			if( !(d.st_mode & S_IFDIR) ) {
-				printf( "%s is not a directory\n", argv[i] );
-				exit(-1);
-			}
-		}
-	}
-	
-	char *hostname = argv[1];
+    for(i = 2; i < argc; i++) {
+        if ( stat( argv[i], &d) ) {
+            printf( "Plot directory %s does not exist\n", argv[i] );
+            exit(-1);
+        } else {
+            if( !(d.st_mode & S_IFDIR) ) {
+                printf( "%s is not a directory\n", argv[i] );
+                exit(-1);
+            }
+        }
+    }
 
-	// Contains http://? strip it.
-	if(strncmp(hostname, "http://", 7) == 0)
-		hostname += 7;
+    char *hostname = argv[1];
 
-	// Contains Port? Extract and strip.
-	char *p = strstr(hostname, ":");
-	if(p != NULL) {
-		p[0] = 0;
-		p++;
-		nodeport = atoi(p);
-	}
+    // Contains http://? strip it.
+    if(strncmp(hostname, "http://", 7) == 0)
+        hostname += 7;
 
-	printf("Using %s port %i\n", hostname, nodeport);
+    // Contains Port? Extract and strip.
+    char *p = strstr(hostname, ":");
+    if(p != NULL) {
+        p[0] = 0;
+        p++;
+        nodeport = atoi(p);
+    }
 
-	hostname_to_ip(hostname, nodeip);
+    printf("Using %s port %i\n", hostname, nodeport);
 
-	memset(oldSignature, 0, 33);
+    hostname_to_ip(hostname, nodeip);
 
-	pthread_t worker[argc];
-	time(&starttime);
+    memset(oldSignature, 0, 33);
 
-	// Get startpoint:
-	update();	
+    pthread_t worker[argc];
+    time(&starttime);
 
-	// Main loop
-	for(;;) {
-		// Get scoop:
-		char scoopgen[40];
-		memmove(scoopgen, signature, 32);
+    // Get startpoint:
+    update();
 
-		char *mov = (char*)&height;
+    // Main loop
+    for(;;) {
+        // Get scoop:
+        char scoopgen[40];
+        memmove(scoopgen, signature, 32);
 
-		scoopgen[32] = mov[7]; scoopgen[33] = mov[6]; scoopgen[34] = mov[5]; scoopgen[35] = mov[4]; scoopgen[36] = mov[3]; scoopgen[37] = mov[2]; scoopgen[38] = mov[1]; scoopgen[39] = mov[0];
+        char *mov = (char*)&height;
 
-		shabal_context x;
-		shabal_init(&x, 256);
-		shabal(&x, scoopgen, 40);
-		char xcache[32];
-		shabal_close(&x, 0, 0, xcache);
-		
-		scoop = (((unsigned char)xcache[31]) + 256 * (unsigned char)xcache[30]) % HASH_CAP;
+        scoopgen[32] = mov[7]; scoopgen[33] = mov[6]; scoopgen[34] = mov[5]; scoopgen[35] = mov[4]; scoopgen[36] = mov[3]; scoopgen[37] = mov[2]; scoopgen[38] = mov[1]; scoopgen[39] = mov[0];
 
-		// New block: reset stats
-		best = bestn = deadline = bytesRead = 0;
+        shabal_context x;
+        shabal_init(&x, 256);
+        shabal(&x, scoopgen, 40);
+        char xcache[32];
+        shabal_close(&x, 0, 0, xcache);
+
+        scoop = (((unsigned char)xcache[31]) + 256 * (unsigned char)xcache[30]) % HASH_CAP;
+
+        // New block: reset stats
+        best = bestn = deadline = bytesRead = 0;
 
 #ifdef SHARE_POOL
-		sharefill = 0;
+        sharefill = 0;
 #endif
 
-		for(i = 2; i < argc; i++) {
-			if(pthread_create(&worker[i], NULL, work_i, argv[i])) {
-				printf("\nError creating thread. Out of memory? Try lower stagger size\n");
-				exit(-1);
-			}
-		}
+        for(i = 2; i < argc; i++) {
+            if(pthread_create(&worker[i], NULL, work_i, argv[i])) {
+                printf("\nError creating thread. Out of memory? Try lower stagger size\n");
+                exit(-1);
+            }
+        }
 
 #ifdef SHARE_POOL
-	// Collect threads back in for dev's pool:
+    // Collect threads back in for dev's pool:
                 for(i = 2; i < argc; i++)
                        pthread_join(worker[i], NULL);
 
-		if(sharefill > 0) {
-			char *f1 = (char*) malloc(SHARECACHE * 100);
-			char *f2 = (char*) malloc(SHARECACHE * 100);
+        if(sharefill > 0) {
+            char *f1 = (char*) malloc(SHARECACHE * 100);
+            char *f2 = (char*) malloc(SHARECACHE * 100);
 
-			int used = 0;
-			for(i = 0; i<sharefill; i++)
-				used += sprintf(&f1[used], "%llu:%llu\n", sharekey[i], sharenonce[i]);
+            int used = 0;
+            for(i = 0; i<sharefill; i++)
+                used += sprintf(&f1[used], "%llu:%llu\n", sharekey[i], sharenonce[i]);
 
-			
-			int ilen = 1, red = used;
-			while(red > 10) {
-				ilen++;
-				red /= 10;
-			}
 
-			int db = sprintf(f2, "POST /pool/submitWork HTTP/1.0\r\nHost: %s:%i\r\nContent-Type: text/plain;charset=UTF-8\r\nContent-Length: %i\r\n\r\n{\"%s\", %u}", nodeip, nodeport, used + 6 + ilen , f1, used);
+            int ilen = 1, red = used;
+            while(red > 10) {
+                ilen++;
+                red /= 10;
+            }
 
-			printf("\nServer response: %s\n", contactWallet(f2, db));
-			
-			free(f1);
-			free(f2);
-		}
+            int db = sprintf(f2, "POST /pool/submitWork HTTP/1.0\r\nHost: %s:%i\r\nContent-Type: text/plain;charset=UTF-8\r\nContent-Length: %i\r\n\r\n{\"%s\", %u}", nodeip, nodeport, used + 6 + ilen , f1, used);
+
+            printf("\nServer response: %s\n", contactWallet(f2, db));
+
+            free(f1);
+            free(f2);
+        }
 #endif
 
-		memmove(oldSignature, signature, 32);
-	
-		// Wait until block changes:
-		do {
-			update();
-			
-			time_t ttime;
-			time(&ttime);
+        memmove(oldSignature, signature, 32);
+
+        // Wait until block changes:
+        do {
+            update();
+
+            time_t ttime;
+            time(&ttime);
 #ifdef SHARE_POOL
-			printf("\r%llu MB read/%llu GB total/%i shares@target %llu                 ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)), sharefill, targetdeadline);
+            printf("\r%llu MB read/%llu GB total/%i shares@target %llu                 ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)), sharefill, targetdeadline);
 #else
-			if(deadline == 0)	
-				printf("\r%llu MB read/%llu GB total/no deadline                 ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)));
-			else
-				printf("\r%llu MB read/%llu GB total/deadline %llus (%llis left)           ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)), deadline, (long long)deadline + (unsigned int)starttime - (unsigned int)ttime);
+            if(deadline == 0)
+                printf("\r%llu MB read/%llu GB total/no deadline                 ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)));
+            else
+                printf("\r%llu MB read/%llu GB total/deadline %llus (%llis left)           ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)), deadline, (long long)deadline + (unsigned int)starttime - (unsigned int)ttime);
 #endif
 
-			fflush(stdout);
+            fflush(stdout);
 
-			struct timespec wait;
-			// Query faster when solo mining
+            struct timespec wait;
+            // Query faster when solo mining
 #ifdef SOLO
-			wait.tv_sec = 1;
+            wait.tv_sec = 1;
 #else
-			wait.tv_sec = 5;
+            wait.tv_sec = 5;
 #endif
-			wait.tv_nsec = 0;
-			nanosleep(&wait, NULL);
-		} while(memcmp(signature, oldSignature, 32) == 0);	// Wait until signature changed
+            wait.tv_nsec = 0;
+            nanosleep(&wait, NULL);
+        } while(memcmp(signature, oldSignature, 32) == 0);	// Wait until signature changed
 
-		printf("\nNew block %llu, basetarget %llu                          \n", height, baseTarget);
-		fflush(stdout);
+        printf("\nNew block %llu, basetarget %llu                          \n", height, baseTarget);
+        fflush(stdout);
 
-		// Remember starttime
-		time(&starttime);
+        // Remember starttime
+        time(&starttime);
 
 #ifndef SHARE_POOL
-		// Tell all threads to stop:
-		stopThreads = 1;
-		for(i = 2; i < argc; i++)
-		       pthread_join(worker[i], NULL);
+        // Tell all threads to stop:
+        stopThreads = 1;
+        for(i = 2; i < argc; i++)
+               pthread_join(worker[i], NULL);
 
-		stopThreads = 0;
+        stopThreads = 0;
 #endif
-	}
+    }
 }
 
