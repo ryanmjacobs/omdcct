@@ -242,11 +242,12 @@ void *writecache(void *arguments) {
 
     percent = (int)(100 * lastrun / nonces);
 
-    printf("\33[2K\r%i Percent done. (write)", percent);
+    printf("\r%i Percent done. (write)", percent);
     fflush(stdout);
 
     do {
-        int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);	// Dont write more than 100MB at once
+        // Don't write more than 100MB at once
+        int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);
         position += b;
         bytes -= b;
     } while(bytes > 0);
