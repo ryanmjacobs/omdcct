@@ -3,5 +3,4 @@ int getNumberOfCores();
 int hostname_to_ip(char * hostname , char* ip);
 unsigned long long freespace(char *path);
 unsigned long long freemem();
-
-
+int sse2_supported();

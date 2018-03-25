@@ -117,3 +117,10 @@ unsigned long long freemem() {
 #endif
 }
 
+int sse2_supported() {
+#ifdef __SSE2__
+    return 1;
+#else
+    return 0;
+#endif
+}

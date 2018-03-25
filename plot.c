@@ -47,7 +47,6 @@ unsigned int nonces = 0;
 unsigned int staggersize = 0;
 unsigned int threads = 0;
 unsigned int noncesperthread;
-unsigned int selecttype = 0;
 unsigned long long starttime;
 int ofd, run, lastrun;
 
@@ -178,7 +177,7 @@ void *work_i(void *x_void_ptr) {
 
 	unsigned int n;
         for(n=0; n<noncesperthread; n++) {
-            if(selecttype == 1) {
+            if(sse2_supported() == 1) {
                 if (n + 4 < noncesperthread)
                 {
                     mnonce(addr,
@@ -250,7 +249,7 @@ int main(int argc, char **argv) {
 
 	int i;
 	int startgiven = 0;
-        for(i = 1; i < argc; i++) {
+    for(i = 1; i < argc; i++) {
 		// Ignore unknown argument
                 if(argv[i][0] != '-')
 			continue;
@@ -309,20 +308,16 @@ int main(int argc, char **argv) {
 				case 't':
 					threads = parsed;
 					break;
-				case 'x':
-					selecttype = parsed;
-					break;
 			}			
 		}
-        }
+    }
 
-        if(selecttype == 1) printf("Using SSE2 core.\n");
-        else {
-		printf("Using original algorithm.\n");
-		selecttype=0;
-	}
+    if(sse2_supported())
+        printf("Using SSE2 core.\n");
+    else
+        printf("Using original algorithm.\n");
 
-	if(addr == 0)
+	if (addr == 0)
 		usage(argv);
 
 	// Autodetect threads
