@@ -249,9 +249,12 @@ int main(int argc, char **argv) {
     if(argc < 2)
         usage(argv[0]);
 
-    int i;
-    int startgiven = 0;
-    for (i = 1; i < argc; i++) {
+    // pick a start nonce,
+    // the user may or not override this
+    srand(time(NULL));
+    startnonce = (unsigned long long)rand() * (1 << 30) + rand();
+
+    for (int i = 1; i < argc; i++) {
         // Ignore unknown argument
         if(argv[i][0] != '-')
             continue;
@@ -276,7 +279,6 @@ int main(int argc, char **argv) {
                 break;
             case 's':
                 startnonce = value;
-                startgiven = 1;
                 break;
             case 'n':
                 nonces = value;
@@ -305,13 +307,6 @@ int main(int argc, char **argv) {
     if(threads == 0)
         threads = getNumberOfCores();
 
-    // No startnonce given: Just pick random one
-    if(startgiven == 0) {
-        // Just some randomness
-        srand(time(NULL));
-        startnonce = (unsigned long long)rand() * (1 << 30) + rand();
-    }
-
     // No nonces given: use whole disk
     if(nonces == 0) {
         unsigned long long fs = freespace("./");
@@ -334,7 +329,7 @@ int main(int argc, char **argv) {
             staggersize = nonces;
         } else {
             // Determine stagger that (almost) fits nonces
-            for(i = memstag; i >= 1000; i--) {
+            for (int i = memstag; i >= 1000; i--) {
                 if( (nonces % i) < 1000) {
                     staggersize = i;
                     nonces-= (nonces % i);
@@ -394,7 +389,7 @@ int main(int argc, char **argv) {
     for(run = 0; run < nonces; run += staggersize) {
         astarttime = getMS();
 
-        for(i = 0; i < threads; i++) {
+        for(int i = 0; i < threads; i++) {
             nonceoffset[i] = startnonce + i * noncesperthread;
 
             if(pthread_create(&worker[i], NULL, work_i, &nonceoffset[i])) {
@@ -404,12 +399,12 @@ int main(int argc, char **argv) {
         }
 
         // Wait for Threads to finish;
-        for(i=0; i<threads; i++) {
+        for(int i=0; i<threads; i++) {
             pthread_join(worker[i], NULL);
         }
 
         // Run leftover nonces
-        for(i=threads * noncesperthread; i<staggersize; i++)
+        for(int i=threads * noncesperthread; i<staggersize; i++)
             nonce(addr, startnonce + i, (unsigned long long)i);
 
         // Write plot to disk:
