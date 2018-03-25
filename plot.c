@@ -177,7 +177,7 @@ void *work_i(void *x_void_ptr) {
 
     unsigned int n;
         for(n=0; n<noncesperthread; n++) {
-            if(sse2_supported() == 1) {
+            if(sse2_supported()) {
                 if (n + 4 < noncesperthread)
                 {
                     mnonce(addr,
