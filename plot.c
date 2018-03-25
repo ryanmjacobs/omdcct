@@ -51,7 +51,7 @@ unsigned int noncesperthread;
 unsigned long long starttime;
 int ofd, run, lastrun;
 
-char *cache, *wcache, *acache[2];
+char *cache, *wcache;
 
 void *work_i(void *x_void_ptr) {
     unsigned long long *x_ptr = (unsigned long long *)x_void_ptr;
