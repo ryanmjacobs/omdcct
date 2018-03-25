@@ -5,8 +5,8 @@ LDFLAGS=-lpthread
 
 all: plot mine mine_pool_all mine_pool_share
 
-plot: plot.c shabal64.o helper64.o mshabal_sse4.o
-	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse4.o $(LDFLAGS)
+plot: plot.c shabal64.o helper64.o mshabal_sse2.o
+	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse2.o $(LDFLAGS)
 
 mine: mine.c shabal64.o helper64.o
 	$(CC) $(CFLAGS) -DSOLO -o mine mine.c shabal64.o helper64.o $(LDFLAGS)
