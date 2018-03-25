@@ -205,7 +205,7 @@ unsigned long long getMS() {
 }
 
 void usage(const char *progname) {
-    fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE]"
+    fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] "
                     "[-t THREADS]\n", progname);
 
     fprintf(stderr, "   CORE:\n");
@@ -251,70 +251,49 @@ int main(int argc, char **argv) {
 
     int i;
     int startgiven = 0;
-    for(i = 1; i < argc; i++) {
+    for (i = 1; i < argc; i++) {
         // Ignore unknown argument
-                if(argv[i][0] != '-')
+        if(argv[i][0] != '-')
             continue;
 
-        char *parse = NULL;
-        unsigned long long parsed;
-        char param = argv[i][1];
-        int modified;
+        // flag must be one character
+        // flag must be followed by one value
+        if (argv[i][2] != '\0' || i > argc-1)
+            usage(argv[0]);
 
-        if(argv[i][2] == 0) {
-            if(i < argc - 1)
-                parse = argv[++i];
-        } else {
-            parse = &(argv[i][2]);
-        }
-        if(parse != NULL) {
-            modified = 0;
-            parsed = strtoull(parse, 0, 10);
-            switch(parse[strlen(parse) - 1]) {
-                case 't':
-                case 'T':
-                    parsed *= 1000;
-                case 'g':
-                case 'G':
-                    parsed *= 1000;
-                case 'm':
-                case 'M':
-                    parsed *= 1000;
-                case 'k':
-                case 'K':
-                    parsed *= 1000;
-                    modified = 1;
-            }
-            switch(param) {
-                case 'k':
-                    addr = parsed;
-                    break;
-                case 's':
-                    startnonce = parsed;
-                    startgiven = 1;
-                    break;
-                case 'n':
-                    if(modified == 1) {
-                        nonces = (unsigned long long)(parsed / PLOT_SIZE);
-                    } else {
-                        nonces = parsed;
-                    }
-                    break;
-                case 'm':
-                    if(modified == 1) {
-                        staggersize = (unsigned long long)(parsed / PLOT_SIZE);
-                    } else {
-                        staggersize = parsed;
-                    }
-                    break;
-                case 't':
-                    threads = parsed;
-                    break;
-            }
+        char flag = argv[i][1];
+        char *parse = argv[++i];
+
+        // to-be-parsed value must exist
+        if (parse == NULL)
+            usage(argv[0]);
+
+        unsigned long long value = strtoull(parse, 0, 10);
+
+        switch (flag) {
+            case 'k':
+                addr = value;
+                break;
+            case 's':
+                startnonce = value;
+                startgiven = 1;
+                break;
+            case 'n':
+                nonces = value;
+                break;
+            case 'm':
+                staggersize = value;
+                break;
+            case 't':
+                threads = value;
+                break;
+            default:
+                usage(argv[0]);
+                break;
         }
     }
 
-    if(sse2_supported())
+    if (sse2_supported())
         printf("Using SSE2 core.\n");
     else
         printf("Using original algorithm.\n");
