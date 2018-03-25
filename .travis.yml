@@ -6,8 +6,3 @@ compiler:
 script:
   - make
   - ./test.sh
-
-addons:
-  apt:
-    packages:
-      - libpthread-stubs0-dev
