@@ -26,7 +26,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <dirent.h> 
+#include <dirent.h>
 #include <pthread.h>
 
 #include "shabal.h"
@@ -102,7 +102,7 @@ char *contactWallet(char *req, int bytes) {
 
 	struct timeval tv;
 	tv.tv_sec =  15;
-	tv.tv_usec = 0;  
+	tv.tv_usec = 0;
 
 	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
@@ -179,7 +179,7 @@ void procscoop(unsigned long long nonce, int n, char *data, unsigned long long a
 			sharenonce[sharefill] = nonce;
 			sharefill++;
 		}
-#else 
+#else
 		if(bestn == 0 || *wertung <= best) {
 			best = *wertung;
 			bestn = nonce;
@@ -365,7 +365,7 @@ int pollNode() {
 	height = strtoull(rheight + 11, 0, 10);
 	baseTarget = strtoull(rbaseTarget + 15, 0, 10);
 	targetdeadline = strtoull(tdl + 19, 0, 10);
-#else 
+#else
 	char *rbaseTarget = strstr(buffer, "\"baseTarget\":\"");
 	char *rheight = strstr(buffer, "\"height\":\"");
 	char *generationSignature = strstr(buffer, "\"generationSignature\":\"");
@@ -554,7 +554,7 @@ int main(int argc, char **argv) {
 #else
 			if(deadline == 0)	
 				printf("\r%llu MB read/%llu GB total/no deadline                 ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)));
-			else 
+			else
 				printf("\r%llu MB read/%llu GB total/deadline %llus (%llis left)           ", (bytesRead / ( 1024 * 1024 )), (bytesRead / (256 * 1024)), deadline, (long long)deadline + (unsigned int)starttime - (unsigned int)ttime);
 #endif
 
@@ -564,7 +564,7 @@ int main(int argc, char **argv) {
 			// Query faster when solo mining
 #ifdef SOLO
 			wait.tv_sec = 1;
-#else 
+#else
 			wait.tv_sec = 5;
 #endif
 			wait.tv_nsec = 0;
