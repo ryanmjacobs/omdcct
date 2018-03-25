@@ -58,22 +58,37 @@ char *cache, *wcache, *acache[2];
   gendata[PLOT_SIZE + 12] = xv[3]; gendata[PLOT_SIZE + 13] = xv[2]; gendata[PLOT_SIZE + 14] = xv[1]; gendata[PLOT_SIZE + 15] = xv[0]
 
 int mnonce(unsigned long long int addr,
-    unsigned long long int nonce1, unsigned long long int nonce2, unsigned long long int nonce3, unsigned long long int nonce4,
-    unsigned long long cachepos1, unsigned long long cachepos2, unsigned long long cachepos3, unsigned long long cachepos4)
+    unsigned long long int nonce1,
+    unsigned long long int nonce2,
+    unsigned long long int nonce3,
+    unsigned long long int nonce4,
+
+    unsigned long long cachepos1,
+    unsigned long long cachepos2,
+    unsigned long long cachepos3,
+    unsigned long long cachepos4)
 {
     char final1[32], final2[32], final3[32], final4[32];
-    char gendata1[16 + PLOT_SIZE], gendata2[16 + PLOT_SIZE], gendata3[16 + PLOT_SIZE], gendata4[16 + PLOT_SIZE];
+    char gendata1[16 + PLOT_SIZE],
+         gendata2[16 + PLOT_SIZE],
+         gendata3[16 + PLOT_SIZE],
+         gendata4[16 + PLOT_SIZE];
 
     char *xv = (char*)&addr;
 
-    gendata1[PLOT_SIZE] = xv[7]; gendata1[PLOT_SIZE + 1] = xv[6]; gendata1[PLOT_SIZE + 2] = xv[5]; gendata1[PLOT_SIZE + 3] = xv[4];
-    gendata1[PLOT_SIZE + 4] = xv[3]; gendata1[PLOT_SIZE + 5] = xv[2]; gendata1[PLOT_SIZE + 6] = xv[1]; gendata1[PLOT_SIZE + 7] = xv[0];
+    gendata1[PLOT_SIZE] = xv[7];
+    gendata1[PLOT_SIZE + 1] = xv[6];
+    gendata1[PLOT_SIZE + 2] = xv[5];
+    gendata1[PLOT_SIZE + 3] = xv[4];
+    gendata1[PLOT_SIZE + 4] = xv[3];
+    gendata1[PLOT_SIZE + 5] = xv[2];
+    gendata1[PLOT_SIZE + 6] = xv[1];
+    gendata1[PLOT_SIZE + 7] = xv[0];
 
-    for (int i = PLOT_SIZE; i <= PLOT_SIZE + 7; ++i)
-    {
-      gendata2[i] = gendata1[i];
-      gendata3[i] = gendata1[i];
-      gendata4[i] = gendata1[i];
+    for (int i = PLOT_SIZE; i <= PLOT_SIZE + 7; ++i) {
+        gendata2[i] = gendata1[i];
+        gendata3[i] = gendata1[i];
+        gendata4[i] = gendata1[i];
     }
 
     SET_NONCE(gendata1, nonce1);
@@ -90,7 +105,8 @@ int mnonce(unsigned long long int addr,
         if (len > HASH_CAP)
             len = HASH_CAP;
 
-        sse4_mshabal(&x, &gendata1[i], &gendata2[i], &gendata3[i], &gendata4[i], len);
+        sse4_mshabal(&x, &gendata1[i], &gendata2[i],
+                         &gendata3[i], &gendata4[i], len);
         sse4_mshabal_close(&x, 0, 0, 0, 0, 0,
                 &gendata1[i - HASH_SIZE],
                 &gendata2[i - HASH_SIZE],
