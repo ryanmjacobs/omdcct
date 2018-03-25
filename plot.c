@@ -380,12 +380,6 @@ int main(int argc, char **argv) {
 
 	printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4), threads);
 
-	// Comment this out/change it if you really want more than 200 Threads
-	if(threads > 200) {
-		printf("%u threads? Sure?\n", threads);
-		exit(-1);
-	}
-
 	cache = calloc( PLOT_SIZE, staggersize );
 
 	if(cache == NULL) {
