@@ -448,5 +448,3 @@ int main(int argc, char **argv) {
     printf("\nFinished plotting.\n");
     return 0;
 }
-
-
