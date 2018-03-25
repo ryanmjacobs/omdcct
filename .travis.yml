@@ -1,4 +1,6 @@
 language: c
 compiler:
     - gcc
+    - clang
+install: pthread
 script: (make; ./test.sh)
