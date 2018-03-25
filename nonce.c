@@ -13,10 +13,16 @@ extern unsigned int staggersize;
 #define HASH_SIZE	32
 #define HASH_CAP	4096
 
-#define SET_NONCE(gendata, nonce) \
-  xv = (char*)&nonce; \
-  gendata[PLOT_SIZE + 8] = xv[7]; gendata[PLOT_SIZE + 9] = xv[6]; gendata[PLOT_SIZE + 10] = xv[5]; gendata[PLOT_SIZE + 11] = xv[4]; \
-  gendata[PLOT_SIZE + 12] = xv[3]; gendata[PLOT_SIZE + 13] = xv[2]; gendata[PLOT_SIZE + 14] = xv[1]; gendata[PLOT_SIZE + 15] = xv[0]
+#define SET_NONCE(gendata, nonce)\
+  xv = (char*)&nonce;\
+  gendata[PLOT_SIZE + 8] = xv[7];\
+  gendata[PLOT_SIZE + 9] = xv[6];\
+  gendata[PLOT_SIZE + 10] = xv[5];\
+  gendata[PLOT_SIZE + 11] = xv[4];\
+  gendata[PLOT_SIZE + 12] = xv[3];\
+  gendata[PLOT_SIZE + 13] = xv[2];\
+  gendata[PLOT_SIZE + 14] = xv[1];\
+  gendata[PLOT_SIZE + 15] = xv[0]
 
 int mnonce(unsigned long long int addr,
     unsigned long long int nonce1,
