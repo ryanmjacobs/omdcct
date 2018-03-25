@@ -12,8 +12,6 @@
 
 	Implementation of Shabal is taken from:
 	http://www.shabal.com/?p=198
-
-	Usage: ./plot <public key> <start nonce> <nonces> <stagger size> <threads>
 */
 
 #define USE_MULTI_SHABAL
