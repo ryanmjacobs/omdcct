@@ -40,7 +40,6 @@
 
 // Leave 5GB free space
 #define FREE_SPACE	(unsigned long long)5 * 1000 * 1000 * 1000
-#define DEFAULTDIR	"plots/"
 
 // Not to be changed below this
 #define PLOT_SIZE	(4096 * 64)
@@ -59,7 +58,6 @@ unsigned long long starttime;
 int ofd, run, lastrun;
 
 char *cache, *wcache, *acache[2];
-char *outputdir = DEFAULTDIR;
 
 #define SET_NONCE(gendata, nonce) \
   xv = (char*)&nonce; \
@@ -326,7 +324,7 @@ unsigned long long getMS() {
 }
 
 void usage(char **argv) {
-	printf("Usage: %s -k KEY [ -x CORE ] [-d DIRECTORY] [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS] -a\n", argv[0]);
+	printf("Usage: %s -k KEY [ -x CORE ] [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] [-t THREADS] -a\n", argv[0]);
         printf("   CORE:\n");
         printf("     0 - default core\n");
         printf("     1 - SSE2 core\n");
@@ -393,7 +391,7 @@ int main(int argc, char **argv) {
 		char *parse = NULL;
 		unsigned long long parsed;
 		char param = argv[i][1];
-		int modified, ds;
+		int modified;
 
 		if(argv[i][2] == 0) {
 			if(i < argc - 1)
@@ -447,18 +445,6 @@ int main(int argc, char **argv) {
 				case 'x':
 					selecttype = parsed;
 					break;
-				case 'd':
-					ds = strlen(parse);
-					outputdir = (char*) malloc(ds + 2);
-					memcpy(outputdir, parse, ds);
-					// Add final slash?
-					if(outputdir[ds - 1] != '/') {
-						outputdir[ds] = '/';
-						outputdir[ds + 1] = 0;
-					} else {
-						outputdir[ds] = 0;
-					}
-					
 			}			
 		}
         }
@@ -488,7 +474,7 @@ int main(int argc, char **argv) {
 
 	// No nonces given: use whole disk
 	if(nonces == 0) {
-		unsigned long long fs = freespace(outputdir);
+		unsigned long long fs = freespace("./");
 		if(fs <= FREE_SPACE) {
 			printf("Not enough free space on device\n");
 			exit(-1);
@@ -558,10 +544,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	mkdir(outputdir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH);
-
 	char name[100];
-	sprintf(name, "%s%llu_%llu_%u_%u", outputdir, addr, startnonce, nonces, staggersize);
+	sprintf(name, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
 
 	ofd = open(name, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if(ofd < 0) {
