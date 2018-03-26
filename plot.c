@@ -50,7 +50,7 @@ unsigned int staggersize = 0;
 unsigned int threads = 0;
 unsigned int noncesperthread;
 unsigned long long starttime;
-int ofd, run, lastrun;
+int run, lastrun;
 
 char *cache;
 
@@ -92,23 +92,17 @@ void usage(const char *progname) {
     exit(-1);
 }
 
-void *writecache() {
-    unsigned long long bytes = (unsigned long long) staggersize * PLOT_SIZE;
-    unsigned long long position = 0;
-
+void *writecache(FILE *fp, const char *fname) {
     int percent = (int)(100 * lastrun / nonces);
     printf("\r%i Percent done. (write)", percent);
     fflush(stdout);
 
-    do {
-        // Don't write more than 100MB at once
-        int b = write(ofd, &cache[position], bytes > 100000000 ? 100000000 : bytes);
-        position += b;
-        bytes -= b;
-    } while(bytes > 0);
+    // write cache
+    fwrite(cache, PLOT_SIZE, staggersize, fp);
+    fclose(fp);
 
+    // calculate stats
     unsigned long long ms = getMS() - starttime;
-
     double minutes = (double)ms / (1000000 * 60);
     int speed = (int)(staggersize / minutes);
     int m = (int)(nonces - run) / speed;
@@ -235,20 +229,22 @@ int main(int argc, char **argv) {
 
     printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n", startnonce, (startnonce + nonces), (unsigned int)(nonces / 4 / 953), (unsigned int)(staggersize / 4), threads);
 
-    cache = calloc( PLOT_SIZE, staggersize );
+    cache = calloc(PLOT_SIZE, staggersize);
 
-    if(cache == NULL) {
+    if (cache == NULL) {
         printf("Error allocating memory. Try lower stagger size.\n");
         exit(-1);
     }
 
+    // create filename
     char fname[100];
     sprintf(fname, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
 
-    ofd = open(fname, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    if(ofd < 0) {
-        printf("Error opening file %s\n", fname);
-        exit(0);
+    // create file
+    FILE *fp = fopen(fname, "w");
+    if(fp == NULL) {
+        printf("error: opening file %s\n", fname);
+        exit(-1);
     }
 
     // Threads:
@@ -288,12 +284,10 @@ int main(int argc, char **argv) {
         // Write plot to disk:
         starttime=astarttime;
         lastrun=run+staggersize;
-        writecache();
+        writecache(fp, fname);
 
         startnonce += staggersize;
     }
-
-    close(ofd);
 
     printf("\nFinished plotting.\n");
     return 0;
