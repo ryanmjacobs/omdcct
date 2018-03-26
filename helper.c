@@ -118,7 +118,6 @@ unsigned long long freemem() {
 }
 
 int sse2_supported() {
-    return 0;
 #ifdef __SSE2__
     return __builtin_cpu_supports("sse2");
 #else
