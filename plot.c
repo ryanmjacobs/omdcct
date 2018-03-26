@@ -92,7 +92,7 @@ void usage(const char *progname) {
     exit(-1);
 }
 
-void *writecache(void *arguments) {
+void *writecache() {
     unsigned long long bytes = (unsigned long long) staggersize * PLOT_SIZE;
     unsigned long long position = 0;
     int percent;
@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
         noncesperthread = 1;
     }
 
-    pthread_t worker[threads], writeworker;
+    pthread_t worker[threads];
     unsigned long long nonceoffset[threads];
 
     unsigned long long astarttime;
@@ -291,11 +291,7 @@ int main(int argc, char **argv) {
         // Write plot to disk:
         starttime=astarttime;
         lastrun=run+staggersize;
-        if(pthread_create(&writeworker, NULL, writecache, (void *)NULL)) {
-            printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
-            exit(-1);
-        }
-        pthread_join(writeworker, NULL);
+        writecache();
 
         startnonce += staggersize;
     }
