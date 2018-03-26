@@ -38,6 +38,7 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
 
     shabal_context x;
 
+    // generate each of our hashes
     for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
         shabal_init(&x, 256);
         int len = PLOT_SIZE + 16 - i;
@@ -47,15 +48,16 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
         shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
     }
 
+    // create final hash
     shabal_init(&x, 256);
     shabal(&x, gendata, 16 + PLOT_SIZE);
     shabal_close(&x, 0, 0, final);
 
-    // XOR with final
     unsigned long long *start = (unsigned long long*)gendata;
     unsigned long long *fint = (unsigned long long*)&final;
 
-    for (int i = 0; i < PLOT_SIZE; i += 32) {
+    // XOR each hash with the final hash
+    for (int i = 0; i < PLOT_SIZE; i += HASH_SIZE) {
         *start ^= fint[0]; start ++;
         *start ^= fint[1]; start ++;
         *start ^= fint[2]; start ++;
