@@ -26,17 +26,14 @@ extern unsigned int staggersize;
 
 void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long long cachepos) {
     char final[32];
+    shabal_context x;
     char gendata[16 + PLOT_SIZE];
 
-    // prepend gendata with addr
-    for (int i = 0; i < 8; i++)
-        gendata[PLOT_SIZE+i] = *((char *)&addr+7-i);
-
-    // prepend gendata with nr
-    for (int i = 0; i < 8; i++)
-        gendata[PLOT_SIZE+8+i] = *((char *)&nr+7-i);
-
-    shabal_context x;
+    // prepend gendata with addr and nr
+    for (int i = 0; i < 8; i++) {
+        gendata[PLOT_SIZE+i]   = *((char *)&addr+7-i);
+        gendata[PLOT_SIZE+8+i] = *((char *)&nr  +7-i);
+    }
 
     // generate each of our hashes
     for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
