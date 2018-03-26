@@ -245,12 +245,12 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    char name[100];
-    sprintf(name, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
+    char fname[100];
+    sprintf(fname, "%llu_%llu_%u_%u", addr, startnonce, nonces, staggersize);
 
-    ofd = open(name, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    ofd = open(fname, O_CREAT | O_LARGEFILE | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if(ofd < 0) {
-        printf("Error opening file %s\n", name);
+        printf("Error opening file %s\n", fname);
         exit(0);
     }
 
