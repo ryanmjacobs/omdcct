@@ -95,10 +95,8 @@ void usage(const char *progname) {
 void *writecache() {
     unsigned long long bytes = (unsigned long long) staggersize * PLOT_SIZE;
     unsigned long long position = 0;
-    int percent;
 
-    percent = (int)(100 * lastrun / nonces);
-
+    int percent = (int)(100 * lastrun / nonces);
     printf("\r%i Percent done. (write)", percent);
     fflush(stdout);
 
@@ -111,7 +109,6 @@ void *writecache() {
 
     unsigned long long ms = getMS() - starttime;
 
-    percent = (int)(100 * lastrun / nonces);
     double minutes = (double)ms / (1000000 * 60);
     int speed = (int)(staggersize / minutes);
     int m = (int)(nonces - run) / speed;
