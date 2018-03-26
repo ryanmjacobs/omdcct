@@ -52,7 +52,7 @@ unsigned int noncesperthread;
 unsigned long long starttime;
 int ofd, run, lastrun;
 
-char *cache, *wcache;
+char *cache;
 
 void *work_i(void *x_void_ptr) {
     unsigned long long *x_ptr = (unsigned long long *)x_void_ptr;
@@ -104,7 +104,7 @@ void *writecache(void *arguments) {
 
     do {
         // Don't write more than 100MB at once
-        int b = write(ofd, &wcache[position], bytes > 100000000 ? 100000000 : bytes);
+        int b = write(ofd, &cache[position], bytes > 100000000 ? 100000000 : bytes);
         position += b;
         bytes -= b;
     } while(bytes > 0);
@@ -266,7 +266,6 @@ int main(int argc, char **argv) {
     unsigned long long nonceoffset[threads];
 
     unsigned long long astarttime;
-    wcache=cache;
 
     for(run = 0; run < nonces; run += staggersize) {
         astarttime = getMS();
