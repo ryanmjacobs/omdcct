@@ -44,6 +44,7 @@
 
 unsigned long long addr = 0;
 unsigned long long startnonce = 0;
+int use_sse2 = 1;
 unsigned int nonces = 0;
 unsigned int staggersize = 0;
 unsigned int threads = 0;
@@ -58,7 +59,7 @@ void *work_i(void *x_void_ptr) {
     unsigned long long i = *x_ptr;
 
     for (int n=0; n<noncesperthread; n++) {
-        if (sse2_supported()) {
+        if (sse2_supported() && use_sse2) {
             if (n + 4 < noncesperthread) {
                 mnonce(addr,
                       (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
@@ -87,7 +88,7 @@ unsigned long long getMS() {
 
 void usage(const char *progname) {
     fprintf(stderr, "Usage: %s -k KEY [-s STARTNONCE] [-n NONCES] [-m STAGGERSIZE] "
-                    "[-t THREADS]\n", progname);
+                    "[-t THREADS] [-x 0]\n", progname);
     exit(-1);
 }
 
@@ -167,13 +168,16 @@ int main(int argc, char **argv) {
             case 't':
                 threads = value;
                 break;
+            case 'x':
+                use_sse2 = value;
+                break;
             default:
                 usage(argv[0]);
                 break;
         }
     }
 
-    if (sse2_supported())
+    if (sse2_supported() && use_sse2)
         printf("Using SSE2 core.\n");
     else
         printf("Using original algorithm.\n");
