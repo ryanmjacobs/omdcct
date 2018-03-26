@@ -28,29 +28,13 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
     char final[32];
     char gendata[16 + PLOT_SIZE];
 
-    char *xv = (char*)&addr;
+    // prepend gendata with addr
+    for (int i = 0; i < 8; i++)
+        gendata[PLOT_SIZE+i] = *((char *)&addr+7-i);
 
-    gendata[PLOT_SIZE+0] = xv[7];
-    gendata[PLOT_SIZE+1] = xv[6];
-    gendata[PLOT_SIZE+2] = xv[5];
-    gendata[PLOT_SIZE+3] = xv[4];
-
-    gendata[PLOT_SIZE+4] = xv[3];
-    gendata[PLOT_SIZE+5] = xv[2];
-    gendata[PLOT_SIZE+6] = xv[1];
-    gendata[PLOT_SIZE+7] = xv[0];
-
-    xv = (char*)&nr;
-
-    gendata[PLOT_SIZE+8]  = xv[7];
-    gendata[PLOT_SIZE+9]  = xv[6];
-    gendata[PLOT_SIZE+10] = xv[5];
-    gendata[PLOT_SIZE+11] = xv[4];
-
-    gendata[PLOT_SIZE+12] = xv[3];
-    gendata[PLOT_SIZE+13] = xv[2];
-    gendata[PLOT_SIZE+14] = xv[1];
-    gendata[PLOT_SIZE+15] = xv[0];
+    // prepend gendata with nr
+    for (int i = 0; i < 8; i++)
+        gendata[PLOT_SIZE+8+i] = *((char *)&nr+7-i);
 
     shabal_context x;
 
