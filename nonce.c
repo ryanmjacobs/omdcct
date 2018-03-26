@@ -57,7 +57,7 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
     unsigned long long *fint = (unsigned long long*)&final;
 
     // XOR each hash with the final hash
-    for (int i = 0; i < PLOT_SIZE; i += HASH_SIZE) {
+    for (int i = 0; i < PLOT_SIZE; i += 32) {
         *start ^= fint[0]; start ++;
         *start ^= fint[1]; start ++;
         *start ^= fint[2]; start ++;
