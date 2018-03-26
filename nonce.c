@@ -44,15 +44,14 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
     shabal(&x, gendata, 16 + PLOT_SIZE);
     shabal_close(&x, 0, 0, final);
 
-    unsigned long long *start = (unsigned long long*)gendata;
-    unsigned long long *fint = (unsigned long long*)&final;
-
     // XOR each hash with the final hash
+    unsigned long long *start = (unsigned long long*)gendata;
+    unsigned long long *fhash = (unsigned long long*)&final;
     for (int i = 0; i < PLOT_SIZE; i += 32) {
-        *start ^= fint[0]; start ++;
-        *start ^= fint[1]; start ++;
-        *start ^= fint[2]; start ++;
-        *start ^= fint[3]; start ++;
+        *(start++) ^= fhash[0];
+        *(start++) ^= fhash[1];
+        *(start++) ^= fhash[2];
+        *(start++) ^= fhash[3];
     }
 
     // Sort them:
