@@ -1,19 +1,3 @@
-/*
-    Even faster plot generator for burstcoin
-    Modified version originally written by Markus Tervooren
-    Added code for mshabal/mshabal256 (SSE2 optimizations)
-    by Cerr Janror <cerr.janror@gmail.com> : https://github.com/BurstTools/BurstSoftware.git
-
-    Author: Mirkic7 <mirkic7@hotmail.com>
-    Burst: BURST-RQW7-3HNW-627D-3GAEV
-
-    Original author: Markus Tervooren <info@bchain.info>
-    Burst: BURST-R5LP-KEL9-UYLG-GFG6T
-
-    Implementation of Shabal is taken from:
-    http://www.shabal.com/?p=198
-*/
-
 #define _GNU_SOURCE
 #include <stdint.h>
 #include <assert.h>
