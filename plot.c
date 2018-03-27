@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     printf("Creating plot for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n",
             o.start_nonce,
             (o.start_nonce + o.num_nonces),
-            (unsigned int)(o.num_nonces / 4 / 953),
+            (unsigned int)(o.num_nonces / 4 / 1024),
             (unsigned int)(o.stagger_size / 4),
             o.num_threads);
 
