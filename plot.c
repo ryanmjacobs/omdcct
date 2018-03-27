@@ -17,8 +17,8 @@ struct worker_args_t {
     struct opts_t opts;
 };
 
-void *work_i(void *x);
 uint64_t get_ms();
+void *work_i(void *x);
 void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
 
 int main(int argc, char **argv) {
