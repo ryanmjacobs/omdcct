@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+
 #include <dirent.h>
 
 void p_ensure(int predicate, const char *msg) {
@@ -16,13 +18,15 @@ void ensure(int predicate, const char *msg) {
     }
 }
 
+const char *addr = "123";
 int main(void) {
     DIR *dir;
     struct dirent *ent;
     p_ensure((dir = opendir(".")) != NULL, "opendir(\"./\")");
 
     while ((ent = readdir(dir))) {
-        printf("%s\n", ent->d_name);
+        if (!strncmp(addr, ent->d_name, strlen(addr)))
+            puts(ent->d_name);
     }
 
     return 0;
