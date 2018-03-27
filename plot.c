@@ -19,12 +19,12 @@ struct worker_args_t {
 
 uint64_t get_ms();
 void *work_i(void *x);
-void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
+void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr, uint64_t dnr);
 
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
 
-    printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n",
+    printf("Creating plot for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n",
             o.start_nonce,
             (o.start_nonce + o.num_nonces),
             (unsigned int)(o.num_nonces / 4 / 953),
@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
     cache = calloc(PLOT_SIZE, o.stagger_size);
 
     if (cache == NULL) {
-        printf("Error allocating memory. Try lower stagger size.\n");
+        printf("error: allocating cache memory (%llu MB). Try lower stagger size.\n",
+               PLOT_SIZE*o.stagger_size/1024/1024);
         exit(-1);
     }
 
@@ -71,15 +72,16 @@ int main(int argc, char **argv) {
         }
 
         // wait for threads to finish
-        for(unsigned i = 0; i < o.num_threads; i++)
+        for (unsigned i = 0; i < o.num_threads; i++) {
             pthread_join(worker[i], NULL);
+            print_stats(o, start_ms, nr, i*o.nonces_per_thread);
+        }
 
         // run leftover nonces
         for (uint64_t i = o.num_threads * o.nonces_per_thread; i < o.stagger_size; i++)
             nonce(o.addr, o.start_nonce + i, i, o.stagger_size);
 
         // write plot to disk
-        print_stats(o, nr, start_ms);
         fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
 
         o.start_nonce += o.stagger_size;
@@ -119,9 +121,11 @@ void *work_i(void *x) {
     return NULL;
 }
 
-void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms) {
+// dnr = "delta nr", how many nr's we are past our original base nr
+// dnr = (thread_i) * o.nonces_per_thread);
+void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr, uint64_t dnr) {
     // calculate percentage complete and nonces/min
-    int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
+    int percent = (int)(100 * (nr + dnr) / o.num_nonces);
     double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
     int speed = (int)(o.stagger_size / minutes);
     int m = (int)(o.num_nonces - nr) / speed;
@@ -129,7 +133,7 @@ void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms) {
     m -= h * 60;
 
     // print stats
-    printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
+    printf("\r%i%% | %i nonces/minute | %i:%02i left", percent, speed, h, m);
     fflush(stdout);
 }
 
