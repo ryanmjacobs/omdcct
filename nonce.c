@@ -20,7 +20,6 @@ void nonce(uint64_t addr,
            uint64_t cachepos,
            uint64_t stagger_size)
 {
-    char final[32];
     shabal_context x;
     char gendata[16 + PLOT_SIZE];
 
@@ -30,7 +29,7 @@ void nonce(uint64_t addr,
         gendata[PLOT_SIZE+8+i] = *((char *)&nr  +7-i);
     }
 
-    // generate each of our hashes
+    // generate each of our hashes, backwards from PLOT_SIZE (8192)
     for (int i = PLOT_SIZE; i > 0; i -= HASH_SIZE) {
         shabal_init(&x, 256);
         int len = PLOT_SIZE + 16 - i;
@@ -41,6 +40,7 @@ void nonce(uint64_t addr,
     }
 
     // create final hash
+    char final[32];
     shabal_init(&x, 256);
     shabal(&x, gendata, 16 + PLOT_SIZE);
     shabal_close(&x, 0, 0, final);
