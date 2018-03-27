@@ -35,11 +35,6 @@
 #include "nonce.h"
 #include "opts.h"
 
-// Not to be changed below this
-#define PLOT_SIZE	(4096 * 64)
-#define HASH_SIZE	32
-#define HASH_CAP	4096
-
 char *cache;
 struct opts_t *opts;
 

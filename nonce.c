@@ -10,10 +10,6 @@
 extern char *cache;
 extern struct opts_t *opts;
 
-#define PLOT_SIZE	(4096 * 64)
-#define HASH_SIZE	32
-#define HASH_CAP	4096
-
 static void set_nonce(char *gendata, unsigned long long *nonce) {
     for (int i = 0; i < 8; i++)
         gendata[PLOT_SIZE+8+i] = *((char *)nonce+7-i);

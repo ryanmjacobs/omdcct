@@ -5,9 +5,8 @@
 #include "opts.h"
 #include "helper.h"
 
-// Leave 5GB free space
-#define FREE_SPACE	(unsigned long long)5 * 1000 * 1000 * 1000
-#define PLOT_SIZE	(4096 * 64)
+// require at least 1GB of free space
+#define MIN_FREE_SPACE (1024*1024*1024)
 
 static void usage(const char *progname, int error) {
     fprintf(error ? stderr : stdout,
@@ -79,13 +78,12 @@ struct opts_t get_opts(int argc, char **argv) {
     if (o.num_nonces == 0) {
         unsigned long long fs = freespace("./");
 
-        if(fs <= FREE_SPACE) {
+        if (fs <= MIN_FREE_SPACE) {
             printf("Not enough free space on device\n");
             exit(-1);
         }
-        fs -= FREE_SPACE;
 
-        o.num_nonces = (unsigned long long)(fs / PLOT_SIZE);
+        o.num_nonces = (fs-MIN_FREE_SPACE) / PLOT_SIZE;
     }
 
     // Autodetect stagger size
