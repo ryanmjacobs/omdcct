@@ -16,6 +16,7 @@
 
 #define _GNU_SOURCE
 #include <stdint.h>
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +77,10 @@ unsigned long long getMS() {
 }
 
 int main(int argc, char **argv) {
+    // plotting code is completely dependent on
+    // 'unsigned long long' being 64 bits long
+    assert(sizeof(unsigned long long) == 8);
+
     struct opts_t o = get_opts(argc, argv);
     opts = &o;
 
@@ -130,7 +135,7 @@ int main(int argc, char **argv) {
 
     unsigned lastrun;
     unsigned long long starttime, astarttime;
-    for (unsigned run = 0; run < o.num_nonces; run += o.stagger_size) {
+    for (unsigned long long nr = 0; nr < o.num_nonces; nr += o.stagger_size) {
         astarttime = getMS();
 
         for (unsigned i = 0; i < o.num_threads; i++) {
@@ -141,7 +146,7 @@ int main(int argc, char **argv) {
             args->opts = o;
 
             if (pthread_create(&worker[i], NULL, work_i, args)) {
-                printf("Error creating thread. Out of memory? Try lower stagger size / less threads\n");
+                printf("error: unable to create thread. Out of memory? Try lower stagger size / less threads\n");
                 exit(-1);
             }
         }
@@ -159,14 +164,14 @@ int main(int argc, char **argv) {
 
         // store new data
         starttime=astarttime;
-        lastrun=run+o.stagger_size;
+        lastrun=nr+o.stagger_size;
 
         // calculate stats
         int percent = (int)(100 * lastrun / o.num_nonces);
         unsigned long long ms = getMS() - starttime;
         double minutes = (double)ms / (1000000 * 60);
         int speed = (int)(o.stagger_size / minutes);
-        int m = (int)(o.num_nonces - run) / speed;
+        int m = (int)(o.num_nonces - nr) / speed;
         int h = (int)(m / 60);
         m -= h * 60;
 
