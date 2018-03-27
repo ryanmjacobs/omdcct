@@ -37,7 +37,6 @@ char *cache;
 struct opts_t *opts;
 
 unsigned long long starttime;
-unsigned run, lastrun;
 
 struct worker_args_t {
     unsigned long long i;
@@ -78,7 +77,7 @@ unsigned long long getMS() {
     return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
 }
 
-void *writecache(FILE *fp, struct opts_t o) {
+void *writecache(FILE *fp, struct opts_t o, unsigned run, unsigned lastrun) {
     int percent = (int)(100 * lastrun / o.num_nonces);
     printf("\r%i Percent done. (write)", percent);
     fflush(stdout);
@@ -155,9 +154,9 @@ int main(int argc, char **argv) {
     pthread_t worker[o.num_threads];
     unsigned long long nonceoffset[o.num_threads];
 
+    unsigned lastrun;
     unsigned long long astarttime;
-
-    for (run = 0; run < o.num_nonces; run += o.stagger_size) {
+    for (unsigned run = 0; run < o.num_nonces; run += o.stagger_size) {
         astarttime = getMS();
 
         for (unsigned i = 0; i < o.num_threads; i++) {
@@ -184,7 +183,7 @@ int main(int argc, char **argv) {
         // Write plot to disk:
         starttime=astarttime;
         lastrun=run+o.stagger_size;
-        writecache(fp, o);
+        writecache(fp, o, run, lastrun);
 
         o.start_nonce += o.stagger_size;
     }
