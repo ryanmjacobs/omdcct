@@ -133,7 +133,7 @@ void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr, uint64_t dnr) 
     m -= h * 60;
 
     // print stats
-    printf("\r%i%% | %i nonces/minute | %i:%02i left", percent, speed, h, m);
+    printf("\r%d%% | %d nonces/minute | %d:%02d left", percent, speed, h, m);
     fflush(stdout);
 }
 
