@@ -19,7 +19,7 @@ struct worker_args_t {
 
 uint64_t get_ms();
 void *work_i(void *x);
-void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr, uint64_t dnr);
+void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr);
 
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
@@ -72,16 +72,15 @@ int main(int argc, char **argv) {
         }
 
         // wait for threads to finish
-        for (unsigned i = 0; i < o.num_threads; i++) {
+        for (unsigned i = 0; i < o.num_threads; i++)
             pthread_join(worker[i], NULL);
-            print_stats(o, start_ms, nr, i*o.nonces_per_thread);
-        }
 
         // run leftover nonces
         for (uint64_t i = o.num_threads * o.nonces_per_thread; i < o.stagger_size; i++)
             nonce(o.addr, o.start_nonce + i, i, o.stagger_size);
 
         // write plot to disk
+        print_stats(o, start_ms, nr);
         fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
 
         o.start_nonce += o.stagger_size;
@@ -121,11 +120,9 @@ void *work_i(void *x) {
     return NULL;
 }
 
-// dnr = "delta nr", how many nr's we are past our original base nr
-// dnr = (thread_i) * o.nonces_per_thread);
-void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr, uint64_t dnr) {
+void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr) {
     // calculate percentage complete and nonces/min
-    int percent = (int)(100 * (nr + dnr) / o.num_nonces);
+    int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
     double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
     int speed = (int)(o.stagger_size / minutes);
     int m = (int)(o.num_nonces - nr) / speed;
