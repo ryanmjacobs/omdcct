@@ -75,30 +75,6 @@ unsigned long long getMS() {
     return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
 }
 
-void *writecache(FILE *fp, struct opts_t o, unsigned run, unsigned lastrun, unsigned long long starttime) {
-    int percent = (int)(100 * lastrun / o.num_nonces);
-    printf("\r%i Percent done. (write)", percent);
-    fflush(stdout);
-
-    // write cache
-    fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
-    fclose(fp);
-
-    // calculate stats
-    unsigned long long ms = getMS() - starttime;
-    double minutes = (double)ms / (1000000 * 60);
-    int speed = (int)(o.stagger_size / minutes);
-    int m = (int)(o.num_nonces - run) / speed;
-    int h = (int)(m / 60);
-    m -= h * 60;
-
-    printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
-    fflush(stdout);
-
-    return NULL;
-}
-
-
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
     opts = &o;
@@ -178,14 +154,30 @@ int main(int argc, char **argv) {
         for (unsigned long long i = o.num_threads * o.noncesperthread; i < o.stagger_size; i++)
             nonce(o.addr, o.start_nonce + i, i);
 
-        // Write plot to disk:
+        // write plot to disk
+        fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
+
+        // store new data
         starttime=astarttime;
         lastrun=run+o.stagger_size;
-        writecache(fp, o, run, lastrun, starttime);
+
+        // calculate stats
+        int percent = (int)(100 * lastrun / o.num_nonces);
+        unsigned long long ms = getMS() - starttime;
+        double minutes = (double)ms / (1000000 * 60);
+        int speed = (int)(o.stagger_size / minutes);
+        int m = (int)(o.num_nonces - run) / speed;
+        int h = (int)(m / 60);
+        m -= h * 60;
+
+        // print stats
+        printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
+        fflush(stdout);
 
         o.start_nonce += o.stagger_size;
     }
 
+    fclose(fp);
     printf("\nFinished plotting.\n");
     return 0;
 }
