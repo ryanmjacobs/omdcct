@@ -24,13 +24,6 @@ void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
 
-    // adjust according to stagger size
-    if (o.num_nonces % o.stagger_size != 0) {
-        o.num_nonces -= o.num_nonces % o.stagger_size;
-        o.num_nonces += o.stagger_size;
-        printf("Adjusting total nonces to %llu to match stagger size\n", o.num_nonces);
-    }
-
     printf("Creating plots for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n",
             o.start_nonce,
             (o.start_nonce + o.num_nonces),
@@ -64,7 +57,7 @@ int main(int argc, char **argv) {
         uint64_t start_ms = get_ms();
 
         for (unsigned i = 0; i < o.num_threads; i++) {
-            nonceoffset[i] = o.start_nonce + i * o.noncesperthread;
+            nonceoffset[i] = o.start_nonce + i * o.nonces_per_thread;
 
             struct worker_args_t *args = malloc(sizeof(struct worker_args_t));
             args->i = nonceoffset[i];
@@ -81,7 +74,7 @@ int main(int argc, char **argv) {
             pthread_join(worker[i], NULL);
 
         // run leftover nonces
-        for (uint64_t i = o.num_threads * o.noncesperthread; i < o.stagger_size; i++)
+        for (uint64_t i = o.num_threads * o.nonces_per_thread; i < o.stagger_size; i++)
             nonce(o.addr, o.start_nonce + i, i, o.stagger_size);
 
         // write plot to disk
@@ -102,9 +95,9 @@ void *work_i(void *x) {
     struct opts_t o = args->opts;
     uint64_t i = args->i;
 
-    for (uint64_t n = 0; n < o.noncesperthread; n++) {
+    for (uint64_t n = 0; n < o.nonces_per_thread; n++) {
         if (o.use_sse2) {
-            if (n + 4 < o.noncesperthread) {
+            if (n + 4 < o.nonces_per_thread) {
                 mnonce(o.addr,
                       (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
                       (i - o.start_nonce + n + 0),
