@@ -29,14 +29,6 @@ int main(int argc, char **argv) {
     else
         printf("Using original algorithm.\n");
 
-    // 32 Bit and above 4GB?
-    if (sizeof( void* ) < 8 ) {
-        if (o.stagger_size > 15000 ) {
-            printf("Cant use stagger sizes above 15000 with 32-bit version\n");
-            exit(-1);
-        }
-    }
-
     // Adjust according to stagger size
     if (o.num_nonces % o.stagger_size != 0) {
         o.num_nonces -= o.num_nonces % o.stagger_size;
