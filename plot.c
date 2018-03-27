@@ -64,7 +64,8 @@ int main(int argc, char **argv) {
             args->opts = o;
 
             if (pthread_create(&worker[i], NULL, work_i, args)) {
-                printf("error: unable to create thread. Out of memory? Try lower stagger size / less threads\n");
+                printf("error: unable to create thread. Out of memory? "
+                       "Try lower stagger size / less threads\n");
                 exit(-1);
             }
         }
