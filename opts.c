@@ -5,8 +5,8 @@
 #include "opts.h"
 #include "helper.h"
 
-// require at least 1GB of free space
-#define MIN_FREE_SPACE (1024*1024*1024)
+// require at least 512 MB of free space
+#define MIN_FREE_SPACE (512 * 1024*1024)
 
 static void usage(const char *progname, int error) {
     fprintf(error ? stderr : stdout,
@@ -79,7 +79,8 @@ struct opts_t get_opts(int argc, char **argv) {
         unsigned long long fs = freespace("./");
 
         if (fs <= MIN_FREE_SPACE) {
-            printf("Not enough free space on device\n");
+            printf("error: need at least %u MB of free disk space\n",
+                    MIN_FREE_SPACE/1024/1024);
             exit(-1);
         }
 
