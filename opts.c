@@ -110,10 +110,16 @@ struct opts_t get_opts(int argc, char **argv) {
 
     // calculate nonces per thread 
     o.noncesperthread = (unsigned long)(o.stagger_size / o.num_threads);
-    if(o.noncesperthread == 0) {
+    if (o.noncesperthread == 0) {
         o.num_threads = o.stagger_size;
         o.noncesperthread = 1;
     }
+
+    // tell the user if we're using SSE2 or not
+    if (sse2_supported() && o.use_sse2)
+        printf("Using SSE2 core.\n");
+    else
+        printf("Using original algorithm.\n");
 
     return o;
 }

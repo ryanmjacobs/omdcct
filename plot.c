@@ -24,11 +24,6 @@ void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
 
-    if (sse2_supported() && o.use_sse2)
-        printf("Using SSE2 core.\n");
-    else
-        printf("Using original algorithm.\n");
-
     // Adjust according to stagger size
     if (o.num_nonces % o.stagger_size != 0) {
         o.num_nonces -= o.num_nonces % o.stagger_size;
