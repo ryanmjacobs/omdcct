@@ -5,15 +5,16 @@
 #include "shabal.h"
 #include "mshabal.h"
 #include "helper.h"
+#include "opts.h"
 
 extern char *cache;
-extern unsigned int staggersize;
+extern struct opts_t *opts;
 
 #define PLOT_SIZE	(4096 * 64)
 #define HASH_SIZE	32
 #define HASH_CAP	4096
 
-inline void set_nonce(char *gendata, unsigned long long *nonce) {
+static void set_nonce(char *gendata, unsigned long long *nonce) {
     for (int i = 0; i < 8; i++)
         gendata[PLOT_SIZE+8+i] = *((char *)nonce+7-i);
 }
@@ -55,8 +56,8 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
     }
 
     // Sort them:
-    for (int i = 0; i < PLOT_SIZE; i += 64)
-        memmove(&cache[cachepos * 64 + (unsigned long long)i * staggersize], &gendata[i], 64);
+    for (unsigned long long i = 0; i < PLOT_SIZE; i += 64)
+        memmove(&cache[cachepos*64 + i*opts->stagger_size], &gendata[i], 64);
 }
 
 int mnonce(unsigned long long int addr,
@@ -123,11 +124,11 @@ int mnonce(unsigned long long int addr,
     }
 
     // Sort them:
-    for (int i = 0; i < PLOT_SIZE; i += 64) {
-        memmove(&cache[cachepos1 * 64 + (unsigned long long)i * staggersize], &gendata1[i], 64);
-        memmove(&cache[cachepos2 * 64 + (unsigned long long)i * staggersize], &gendata2[i], 64);
-        memmove(&cache[cachepos3 * 64 + (unsigned long long)i * staggersize], &gendata3[i], 64);
-        memmove(&cache[cachepos4 * 64 + (unsigned long long)i * staggersize], &gendata4[i], 64);
+    for (unsigned long long i = 0; i < PLOT_SIZE; i += 64) {
+        memmove(&cache[cachepos1*64 + i*opts->stagger_size], &gendata1[i], 64);
+        memmove(&cache[cachepos2*64 + i*opts->stagger_size], &gendata2[i], 64);
+        memmove(&cache[cachepos3*64 + i*opts->stagger_size], &gendata3[i], 64);
+        memmove(&cache[cachepos4*64 + i*opts->stagger_size], &gendata4[i], 64);
     }
 
     return 0;

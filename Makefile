@@ -1,12 +1,13 @@
 CC?=gcc
-CFLAGS=-Wall -m64 -std=gnu99 -O2 -march=native\
+CFLAGS=-Wall -Wextra -m64 -std=gnu99 -O2 -march=native\
 	   -D_FILE_OFFSET_BITS=64
 LDFLAGS=-lpthread
 
 all: plot mine mine_pool_all mine_pool_share
 
-plot: plot.c shabal64.o helper64.o mshabal_sse2.o nonce.o
-	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse2.o nonce.o $(LDFLAGS)
+plot: plot.c shabal64.o helper64.o mshabal_sse2.o nonce.o opts.o
+	$(CC) $(CFLAGS) -o plot plot.c shabal64.o helper64.o mshabal_sse2.o\
+		nonce.o opts.o $(LDFLAGS)
 
 mine: mine.c shabal64.o helper64.o
 	$(CC) $(CFLAGS) -DSOLO -o mine mine.c shabal64.o helper64.o $(LDFLAGS)
@@ -19,6 +20,9 @@ mine_pool_share: mine.c shabal64.o helper64.o
 
 nonce.o: nonce.c
 	$(CC) $(CFLAGS) -c -o nonce.o nonce.c
+
+opts.o: opts.c
+	$(CC) $(CFLAGS) -c -o opts.o opts.c
 
 helper64.o: helper.c
 	$(CC) $(CFLAGS) -c -o helper64.o helper.c
