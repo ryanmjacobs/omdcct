@@ -10,15 +10,15 @@
 extern char *cache;
 extern struct opts_t *opts;
 
-static void set_nonce(char *gendata, unsigned long long *nonce) {
+static void set_nonce(char *gendata, uint64_t *nonce) {
     for (int i = 0; i < 8; i++)
         gendata[PLOT_SIZE+8+i] = *((char *)nonce+7-i);
 }
 
-void nonce(unsigned long long int addr,
-           unsigned long long int nr,
-           unsigned long long cachepos,
-           unsigned long long stagger_size)
+void nonce(uint64_t addr,
+           uint64_t nr,
+           uint64_t cachepos,
+           uint64_t stagger_size)
 {
     char final[32];
     shabal_context x;
@@ -46,8 +46,8 @@ void nonce(unsigned long long int addr,
     shabal_close(&x, 0, 0, final);
 
     // XOR each hash with the final hash
-    unsigned long long *start = (unsigned long long*)gendata;
-    unsigned long long *fhash = (unsigned long long*)&final;
+    uint64_t *start = (uint64_t*)gendata;
+    uint64_t *fhash = (uint64_t*)&final;
     for (int i = 0; i < PLOT_SIZE; i += 32) {
         *(start++) ^= fhash[0];
         *(start++) ^= fhash[1];
@@ -56,21 +56,21 @@ void nonce(unsigned long long int addr,
     }
 
     // Sort them:
-    for (unsigned long long i = 0; i < PLOT_SIZE; i += 64)
+    for (uint64_t i = 0; i < PLOT_SIZE; i += 64)
         memmove(&cache[cachepos*64 + i*stagger_size], &gendata[i], 64);
 }
 
-int mnonce(unsigned long long int addr,
-    unsigned long long int nonce1,
-    unsigned long long int nonce2,
-    unsigned long long int nonce3,
-    unsigned long long int nonce4,
+int mnonce(uint64_t addr,
+    uint64_t nonce1,
+    uint64_t nonce2,
+    uint64_t nonce3,
+    uint64_t nonce4,
 
-    unsigned long long cachepos1,
-    unsigned long long cachepos2,
-    unsigned long long cachepos3,
-    unsigned long long cachepos4,
-    unsigned long long stagger_size)
+    uint64_t cachepos1,
+    uint64_t cachepos2,
+    uint64_t cachepos3,
+    uint64_t cachepos4,
+    uint64_t stagger_size)
 {
     char final1[32], final2[32], final3[32], final4[32];
     char gendata1[16 + PLOT_SIZE],
@@ -125,7 +125,7 @@ int mnonce(unsigned long long int addr,
     }
 
     // Sort them:
-    for (unsigned long long i = 0; i < PLOT_SIZE; i += 64) {
+    for (uint64_t i = 0; i < PLOT_SIZE; i += 64) {
         memmove(&cache[cachepos1*64 + i*stagger_size], &gendata1[i], 64);
         memmove(&cache[cachepos2*64 + i*stagger_size], &gendata2[i], 64);
         memmove(&cache[cachepos3*64 + i*stagger_size], &gendata3[i], 64);

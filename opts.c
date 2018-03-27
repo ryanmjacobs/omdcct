@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "opts.h"
 #include "helper.h"
@@ -20,7 +21,7 @@ struct opts_t get_opts(int argc, char **argv) {
     struct opts_t o = {
         .use_sse2 = sse2_supported(),
         .num_threads = num_cores(),
-        .start_nonce = (unsigned long long)rand() * (1 << 30) + rand()
+        .start_nonce = (uint64_t)rand() * (1 << 30) + rand()
     };
 
     if (argc < 2)
@@ -43,7 +44,7 @@ struct opts_t get_opts(int argc, char **argv) {
         if (parse == NULL)
             usage(argv[0], 1);
 
-        unsigned long long value = strtoull(parse, 0, 10);
+        uint64_t value = strtoull(parse, 0, 10);
 
         switch (flag) {
             case 'k':
@@ -76,7 +77,7 @@ struct opts_t get_opts(int argc, char **argv) {
 
     // determine amount of nonces, (if not already defined)
     if (o.num_nonces == 0) {
-        unsigned long long fs = freespace("./");
+        uint64_t fs = freespace("./");
 
         if (fs <= MIN_FREE_SPACE) {
             printf("error: need at least %u MB of free disk space\n",
@@ -90,7 +91,7 @@ struct opts_t get_opts(int argc, char **argv) {
     // autodetect stagger size, (if not yet defined)
     if (o.stagger_size == 0) {
         // use 80% of memory
-        unsigned long long memstag = (freemem() * 0.8) / PLOT_SIZE;
+        uint64_t memstag = (freemem() * 0.8) / PLOT_SIZE;
 
         if (o.num_nonces < memstag) {
             // small stack: all at once

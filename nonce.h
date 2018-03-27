@@ -1,23 +1,25 @@
 #ifndef NONCE_H
 #define NONCE_H
 
+#include <stdint.h>
+
 int mnonce(
-    unsigned long long int addr,
-    unsigned long long int nonce1,
-    unsigned long long int nonce2,
-    unsigned long long int nonce3,
-    unsigned long long int nonce4,
+    uint64_t addr,
+    uint64_t nonce1,
+    uint64_t nonce2,
+    uint64_t nonce3,
+    uint64_t nonce4,
 
-    unsigned long long cachepos1,
-    unsigned long long cachepos2,
-    unsigned long long cachepos3,
-    unsigned long long cachepos4,
+    uint64_t cachepos1,
+    uint64_t cachepos2,
+    uint64_t cachepos3,
+    uint64_t cachepos4,
 
-    unsigned long long stagger_size);
+    uint64_t stagger_size);
 
-void nonce(unsigned long long int addr,
-           unsigned long long int nr,
-           unsigned long long cachepos,
-           unsigned long long stagger_size);
+void nonce(uint64_t addr,
+           uint64_t nr,
+           uint64_t cachepos,
+           uint64_t stagger_size);
 
 #endif

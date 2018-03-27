@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 
 #include <pthread.h>
@@ -14,19 +13,15 @@
 char *cache;
 
 struct worker_args_t {
-    unsigned long long i;
+    uint64_t i;
     struct opts_t opts;
 };
 
 void *work_i(void *x);
-unsigned long long get_ms();
-void print_stats(struct opts_t o, unsigned long long nr, unsigned long long start_ms);
+uint64_t get_ms();
+void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
 
 int main(int argc, char **argv) {
-    // plotting code is completely dependent on
-    // 'unsigned long long' being 64 bits long
-    assert(sizeof(unsigned long long) == 8);
-
     struct opts_t o = get_opts(argc, argv);
 
     if (sse2_supported() && o.use_sse2)
@@ -76,10 +71,10 @@ int main(int argc, char **argv) {
     }
 
     pthread_t worker[o.num_threads];
-    unsigned long long nonceoffset[o.num_threads];
+    uint64_t nonceoffset[o.num_threads];
 
-    for (unsigned long long nr = 0; nr < o.num_nonces; nr += o.stagger_size) {
-        unsigned long long start_ms = get_ms();
+    for (uint64_t nr = 0; nr < o.num_nonces; nr += o.stagger_size) {
+        uint64_t start_ms = get_ms();
 
         for (unsigned i = 0; i < o.num_threads; i++) {
             nonceoffset[i] = o.start_nonce + i * o.noncesperthread;
@@ -99,7 +94,7 @@ int main(int argc, char **argv) {
             pthread_join(worker[i], NULL);
 
         // run leftover nonces
-        for (unsigned long long i = o.num_threads * o.noncesperthread; i < o.stagger_size; i++)
+        for (uint64_t i = o.num_threads * o.noncesperthread; i < o.stagger_size; i++)
             nonce(o.addr, o.start_nonce + i, i, o.stagger_size);
 
         // write plot to disk
@@ -118,9 +113,9 @@ void *work_i(void *x) {
     struct worker_args_t *args = x;
 
     struct opts_t o = args->opts;
-    unsigned long long i = args->i;
+    uint64_t i = args->i;
 
-    for (unsigned long long n = 0; n < o.noncesperthread; n++) {
+    for (uint64_t n = 0; n < o.noncesperthread; n++) {
         if (o.use_sse2) {
             if (n + 4 < o.noncesperthread) {
                 mnonce(o.addr,
@@ -143,7 +138,7 @@ void *work_i(void *x) {
     return NULL;
 }
 
-void print_stats(struct opts_t o, unsigned long long nr, unsigned long long start_ms) {
+void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms) {
     // calculate percentage complete and nonces/min
     int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
     double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
@@ -157,9 +152,9 @@ void print_stats(struct opts_t o, unsigned long long nr, unsigned long long star
     fflush(stdout);
 }
 
-unsigned long long get_ms() {
+uint64_t get_ms() {
     struct timeval time;
     gettimeofday(&time, NULL);
-    return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
+    return ((uint64_t)time.tv_sec * 1000000) + time.tv_usec;
 }
 
