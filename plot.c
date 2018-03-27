@@ -70,7 +70,7 @@ void *work_i(void *x) {
     return NULL;
 }
 
-unsigned long long getMS() {
+unsigned long long get_ms() {
     struct timeval time;
     gettimeofday(&time, NULL);
     return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
@@ -133,10 +133,8 @@ int main(int argc, char **argv) {
     pthread_t worker[o.num_threads];
     unsigned long long nonceoffset[o.num_threads];
 
-    unsigned lastrun;
-    unsigned long long starttime, astarttime;
     for (unsigned long long nr = 0; nr < o.num_nonces; nr += o.stagger_size) {
-        astarttime = getMS();
+        unsigned long long start_ms = get_ms();
 
         for (unsigned i = 0; i < o.num_threads; i++) {
             nonceoffset[i] = o.start_nonce + i * o.noncesperthread;
@@ -162,14 +160,9 @@ int main(int argc, char **argv) {
         // write plot to disk
         fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
 
-        // store new data
-        starttime=astarttime;
-        lastrun=nr+o.stagger_size;
-
-        // calculate stats
-        int percent = (int)(100 * lastrun / o.num_nonces);
-        unsigned long long ms = getMS() - starttime;
-        double minutes = (double)ms / (1000000 * 60);
+        // calculate percentage complete and nonces/min
+        int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
+        double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
         int speed = (int)(o.stagger_size / minutes);
         int m = (int)(o.num_nonces - nr) / speed;
         int h = (int)(m / 60);
