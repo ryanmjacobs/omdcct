@@ -74,7 +74,7 @@ struct opts_t get_opts(int argc, char **argv) {
     if (o.addr == 0)
         usage(argv[0], 1);
 
-    // determine amount of nonces
+    // determine amount of nonces, (if not already defined)
     if (o.num_nonces == 0) {
         unsigned long long fs = freespace("./");
 
@@ -87,16 +87,16 @@ struct opts_t get_opts(int argc, char **argv) {
         o.num_nonces = (fs-MIN_FREE_SPACE) / PLOT_SIZE;
     }
 
-    // Autodetect stagger size
+    // autodetect stagger size, (if not yet defined)
     if (o.stagger_size == 0) {
         // use 80% of memory
         unsigned long long memstag = (freemem() * 0.8) / PLOT_SIZE;
 
         if (o.num_nonces < memstag) {
-            // Small stack: all at once
+            // small stack: all at once
             o.stagger_size = o.num_nonces;
         } else {
-            // Determine stagger that (almost) fits nonces
+            // determine stagger that (almost) fits nonces
             for (int i = memstag; i >= 1000; i--) {
                 if ((o.num_nonces % i) < 1000) {
                     o.stagger_size = i;
@@ -113,7 +113,6 @@ struct opts_t get_opts(int argc, char **argv) {
         o.num_threads = o.stagger_size;
         o.noncesperthread = 1;
     }
-
 
     return o;
 }

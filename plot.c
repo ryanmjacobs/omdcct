@@ -14,8 +14,6 @@
     http://www.shabal.com/?p=198
 */
 
-#define USE_MULTI_SHABAL
-
 #define _GNU_SOURCE
 #include <stdint.h>
 #include <string.h>
