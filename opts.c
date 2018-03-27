@@ -115,6 +115,13 @@ struct opts_t get_opts(int argc, char **argv) {
         o.noncesperthread = 1;
     }
 
+    // adjust number of nonces, according to stagger size
+    if (o.num_nonces % o.stagger_size != 0) {
+        o.num_nonces -= o.num_nonces % o.stagger_size;
+        o.num_nonces += o.stagger_size;
+        printf("Adjusting total nonces to %llu to match stagger size\n", o.num_nonces);
+    }
+
     // tell the user if we're using SSE2 or not
     if (sse2_supported() && o.use_sse2)
         printf("Using SSE2 core.\n");

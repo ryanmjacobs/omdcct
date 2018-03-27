@@ -24,7 +24,7 @@ void print_stats(struct opts_t o, uint64_t nr, uint64_t start_ms);
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
 
-    // Adjust according to stagger size
+    // adjust according to stagger size
     if (o.num_nonces % o.stagger_size != 0) {
         o.num_nonces -= o.num_nonces % o.stagger_size;
         o.num_nonces += o.stagger_size;
