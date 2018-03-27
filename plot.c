@@ -98,20 +98,15 @@ void *work_i(void *x) {
     uint64_t i = args->i;
 
     for (uint64_t n = 0; n < o.nonces_per_thread; n++) {
-        if (o.use_sse2) {
-            if (n + 4 < o.nonces_per_thread) {
-                mnonce(o.addr,
-                      (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
-                      (i - o.start_nonce + n + 0),
-                      (i - o.start_nonce + n + 1),
-                      (i - o.start_nonce + n + 2),
-                      (i - o.start_nonce + n + 3),
-                      o.stagger_size);
-
-                n += 3;
-            } else {
-               nonce(o.addr, (i + n), (i - o.start_nonce + n), o.stagger_size);
-            }
+        if (o.use_sse2 && n+4 < o.nonces_per_thread) {
+            mnonce(o.addr,
+                  (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
+                  (i - o.start_nonce + n + 0),
+                  (i - o.start_nonce + n + 1),
+                  (i - o.start_nonce + n + 2),
+                  (i - o.start_nonce + n + 3),
+                  o.stagger_size);
+            n += 3;
         } else {
             nonce(o.addr, (i + n), (i - o.start_nonce + n), o.stagger_size);
         }
