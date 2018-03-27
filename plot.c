@@ -12,7 +12,6 @@
 #include "opts.h"
 
 char *cache;
-struct opts_t *opts;
 
 struct worker_args_t {
     unsigned long long i;
@@ -29,7 +28,6 @@ int main(int argc, char **argv) {
     assert(sizeof(unsigned long long) == 8);
 
     struct opts_t o = get_opts(argc, argv);
-    opts = &o;
 
     if (sse2_supported() && o.use_sse2)
         printf("Using SSE2 core.\n");
@@ -102,7 +100,7 @@ int main(int argc, char **argv) {
 
         // run leftover nonces
         for (unsigned long long i = o.num_threads * o.noncesperthread; i < o.stagger_size; i++)
-            nonce(o.addr, o.start_nonce + i, i);
+            nonce(o.addr, o.start_nonce + i, i, o.stagger_size);
 
         // write plot to disk
         print_stats(o, nr, start_ms);
@@ -130,14 +128,15 @@ void *work_i(void *x) {
                       (i - o.start_nonce + n + 0),
                       (i - o.start_nonce + n + 1),
                       (i - o.start_nonce + n + 2),
-                      (i - o.start_nonce + n + 3));
+                      (i - o.start_nonce + n + 3),
+                      o.stagger_size);
 
                 n += 3;
             } else {
-               nonce(o.addr, (i + n), (i - o.start_nonce + n));
+               nonce(o.addr, (i + n), (i - o.start_nonce + n), o.stagger_size);
             }
         } else {
-            nonce(o.addr, (i + n), (i - o.start_nonce + n));
+            nonce(o.addr, (i + n), (i - o.start_nonce + n), o.stagger_size);
         }
     }
 

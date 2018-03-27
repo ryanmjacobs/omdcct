@@ -15,7 +15,11 @@ static void set_nonce(char *gendata, unsigned long long *nonce) {
         gendata[PLOT_SIZE+8+i] = *((char *)nonce+7-i);
 }
 
-void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long long cachepos) {
+void nonce(unsigned long long int addr,
+           unsigned long long int nr,
+           unsigned long long cachepos,
+           unsigned long long stagger_size)
+{
     char final[32];
     shabal_context x;
     char gendata[16 + PLOT_SIZE];
@@ -53,7 +57,7 @@ void nonce(unsigned long long int addr, unsigned long long int nr, unsigned long
 
     // Sort them:
     for (unsigned long long i = 0; i < PLOT_SIZE; i += 64)
-        memmove(&cache[cachepos*64 + i*opts->stagger_size], &gendata[i], 64);
+        memmove(&cache[cachepos*64 + i*stagger_size], &gendata[i], 64);
 }
 
 int mnonce(unsigned long long int addr,
@@ -65,7 +69,8 @@ int mnonce(unsigned long long int addr,
     unsigned long long cachepos1,
     unsigned long long cachepos2,
     unsigned long long cachepos3,
-    unsigned long long cachepos4)
+    unsigned long long cachepos4,
+    unsigned long long stagger_size)
 {
     char final1[32], final2[32], final3[32], final4[32];
     char gendata1[16 + PLOT_SIZE],
@@ -121,10 +126,10 @@ int mnonce(unsigned long long int addr,
 
     // Sort them:
     for (unsigned long long i = 0; i < PLOT_SIZE; i += 64) {
-        memmove(&cache[cachepos1*64 + i*opts->stagger_size], &gendata1[i], 64);
-        memmove(&cache[cachepos2*64 + i*opts->stagger_size], &gendata2[i], 64);
-        memmove(&cache[cachepos3*64 + i*opts->stagger_size], &gendata3[i], 64);
-        memmove(&cache[cachepos4*64 + i*opts->stagger_size], &gendata4[i], 64);
+        memmove(&cache[cachepos1*64 + i*stagger_size], &gendata1[i], 64);
+        memmove(&cache[cachepos2*64 + i*stagger_size], &gendata2[i], 64);
+        memmove(&cache[cachepos3*64 + i*stagger_size], &gendata3[i], 64);
+        memmove(&cache[cachepos4*64 + i*stagger_size], &gendata4[i], 64);
     }
 
     return 0;
