@@ -42,39 +42,9 @@ struct worker_args_t {
     struct opts_t opts;
 };
 
-void *work_i(void *x) {
-    struct worker_args_t *args = x;
-
-    struct opts_t o = args->opts;
-    unsigned long long i = args->i;
-
-    for (unsigned long long n = 0; n < o.noncesperthread; n++) {
-        if (o.use_sse2) {
-            if (n + 4 < o.noncesperthread) {
-                mnonce(o.addr,
-                      (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
-                      (i - o.start_nonce + n + 0),
-                      (i - o.start_nonce + n + 1),
-                      (i - o.start_nonce + n + 2),
-                      (i - o.start_nonce + n + 3));
-
-                n += 3;
-            } else {
-               nonce(o.addr, (i + n), (i - o.start_nonce + n));
-            }
-        } else {
-            nonce(o.addr, (i + n), (i - o.start_nonce + n));
-        }
-    }
-
-    return NULL;
-}
-
-unsigned long long get_ms() {
-    struct timeval time;
-    gettimeofday(&time, NULL);
-    return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
-}
+void *work_i(void *x);
+unsigned long long get_ms();
+void print_stats(struct opts_t o, unsigned long long nr, unsigned long long start_ms);
 
 int main(int argc, char **argv) {
     // plotting code is completely dependent on
@@ -158,19 +128,8 @@ int main(int argc, char **argv) {
             nonce(o.addr, o.start_nonce + i, i);
 
         // write plot to disk
+        print_stats(o, nr, start_ms);
         fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
-
-        // calculate percentage complete and nonces/min
-        int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
-        double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
-        int speed = (int)(o.stagger_size / minutes);
-        int m = (int)(o.num_nonces - nr) / speed;
-        int h = (int)(m / 60);
-        m -= h * 60;
-
-        // print stats
-        printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
-        fflush(stdout);
 
         o.start_nonce += o.stagger_size;
     }
@@ -179,3 +138,52 @@ int main(int argc, char **argv) {
     printf("\nFinished plotting.\n");
     return 0;
 }
+
+void *work_i(void *x) {
+    struct worker_args_t *args = x;
+
+    struct opts_t o = args->opts;
+    unsigned long long i = args->i;
+
+    for (unsigned long long n = 0; n < o.noncesperthread; n++) {
+        if (o.use_sse2) {
+            if (n + 4 < o.noncesperthread) {
+                mnonce(o.addr,
+                      (i + n + 0), (i + n + 1), (i + n + 2), (i + n + 3),
+                      (i - o.start_nonce + n + 0),
+                      (i - o.start_nonce + n + 1),
+                      (i - o.start_nonce + n + 2),
+                      (i - o.start_nonce + n + 3));
+
+                n += 3;
+            } else {
+               nonce(o.addr, (i + n), (i - o.start_nonce + n));
+            }
+        } else {
+            nonce(o.addr, (i + n), (i - o.start_nonce + n));
+        }
+    }
+
+    return NULL;
+}
+
+void print_stats(struct opts_t o, unsigned long long nr, unsigned long long start_ms) {
+    // calculate percentage complete and nonces/min
+    int percent = (int)(100 * (nr + o.stagger_size) / o.num_nonces);
+    double minutes = (double) (get_ms() - start_ms) / (60 * 1000000);
+    int speed = (int)(o.stagger_size / minutes);
+    int m = (int)(o.num_nonces - nr) / speed;
+    int h = (int)(m / 60);
+    m -= h * 60;
+
+    // print stats
+    printf("\r%i Percent done. %i nonces/minute, %i:%02i left", percent, speed, h, m);
+    fflush(stdout);
+}
+
+unsigned long long get_ms() {
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    return ((unsigned long long)time.tv_sec * 1000000) + time.tv_usec;
+}
+
