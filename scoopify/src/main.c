@@ -41,10 +41,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // open the current directory
     DIR *dir;
     struct dirent *ent;
     p_ensure((dir = opendir(".")) != NULL, "opendir(\"./\")");
 
+    // read in plotfiles that match our address
     char *addr = argv[1];
     while ((ent = readdir(dir))) {
         int fname_matches = !strncmp(addr, ent->d_name, strlen(addr));
@@ -53,7 +55,6 @@ int main(int argc, char **argv) {
         if (fname_matches && readable) {
             struct plotfile_t *pf = malloc(sizeof(struct plotfile_t));
             pf->fname = ent->d_name;
-
             sscanf(pf->fname, "%lu_%lu_%lu_%lu",
                    &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
             print_plotfile(pf);
