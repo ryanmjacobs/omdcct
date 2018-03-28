@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -41,13 +42,15 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // "globals"
+    const char *addr = argv[1];
+
     // open the current directory
     DIR *dir;
     struct dirent *ent;
     p_ensure((dir = opendir(".")) != NULL, "opendir(\"./\")");
 
     // read in plotfiles that match our address
-    char *addr = argv[1];
     while ((ent = readdir(dir))) {
         int fname_matches = !strncmp(addr, ent->d_name, strlen(addr));
         int readable = !access(ent->d_name, F_OK);
@@ -59,6 +62,14 @@ int main(int argc, char **argv) {
                    &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
             print_plotfile(pf);
         }
+    }
+
+    // create and push each scoop
+    for (unsigned scoop = 0; scoop < 4096; scoop++) {
+        char *fname;
+        asprintf(&fname, "%s_%u.scoops", addr, scoop);
+        puts(fname);
+        free(fname);
     }
 
     return 0;
