@@ -8,6 +8,9 @@
 #include <dirent.h>
 
 // TODO: figure out what functions use perror()
+// TODO: find better way of dealing with hard max of 64 plot files
+
+#define MAX_PLOT_FILES 64
 
 void p_ensure(int predicate, const char *msg) {
     if (!predicate) {
@@ -48,7 +51,7 @@ int main(int argc, char **argv) {
     // "globals"
     const char *addr = argv[1];
     unsigned pf_cnt = 0;
-    struct plotfile_t **plotfiles;
+    struct plotfile_t *plotfiles[MAX_PLOT_FILES];
 
     // open the current directory
     DIR *dir;
@@ -57,20 +60,21 @@ int main(int argc, char **argv) {
 
     // read in plotfiles that match our address
     while ((ent = readdir(dir))) {
+        if (pf_cnt > MAX_PLOT_FILES)
+            break;
+
         int fname_matches = !strncmp(addr, ent->d_name, strlen(addr));
         int readable = !access(ent->d_name, F_OK);
 
         if (fname_matches && readable) {
             // parse plotfile filename
             struct plotfile_t *pf = malloc(sizeof(struct plotfile_t));
-            pf->fname = ent->d_name;
+            pf->fname = strdup(ent->d_name);
             sscanf(pf->fname, "%lu_%lu_%lu_%lu",
                    &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
             print_plotfile(pf);
 
             // push plotfile onto array
-            plotfiles = realloc(plotfiles, (pf_cnt+1) * sizeof(struct plotfile_t *));
-            ensure(plotfiles != NULL, "error: realloc(plotfiles) failed\n");
             plotfiles[pf_cnt++] = pf;
         }
     }
@@ -88,6 +92,13 @@ int main(int argc, char **argv) {
 
         // loop through plotfiles and dump their particular scoops
         for (unsigned i = 0; i < pf_cnt; i++) {
+            // grab the i-th plotfile
+            struct plotfile_t *pf = plotfiles[i];
+
+            FILE *plot_fp = fopen(pf->fname, "rb");
+            p_ensure(plot_fp != NULL, "fopen()");
+
+            fclose(plot_fp);
         }
 
         fclose(scoop_fp);
@@ -97,7 +108,6 @@ int main(int argc, char **argv) {
     for (unsigned i = 0; i < pf_cnt; i++) {
         free(plotfiles[i]);
     }
-    free(plotfiles);
 
     return 0;
 }
