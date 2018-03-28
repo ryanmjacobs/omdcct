@@ -27,6 +27,14 @@ struct plotfile_t {
     uint64_t stagger; // stagger size
 };
 
+void print_plotfile(struct plotfile_t *pf) {
+    printf("      fname: %s\n",    pf->fname);
+    printf("       addr: %lu\n",   pf->addr);
+    printf("start nonce: %lu\n",   pf->snonce);
+    printf("num. nonces: %lu\n",   pf->nonces);
+    printf("    stagger: %lu\n\n", pf->stagger);
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <addr>\n", argv[0]);
@@ -48,13 +56,7 @@ int main(int argc, char **argv) {
 
             sscanf(pf->fname, "%lu_%lu_%lu_%lu",
                    &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
-
-            printf("      fname: %s\n",  pf->fname);
-            printf("       addr: %lu\n", pf->addr);
-            printf("start nonce: %lu\n", pf->snonce);
-            printf("num. nonces: %lu\n", pf->nonces);
-            printf("    stagger: %lu\n", pf->stagger);
-            puts("");
+            print_plotfile(pf);
         }
     }
 
