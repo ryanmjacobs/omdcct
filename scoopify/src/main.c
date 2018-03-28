@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <stdlib.h>
+
+#include <unistd.h>
 #include <dirent.h>
+
+// TODO: figure out what functions use perror()
 
 void p_ensure(int predicate, const char *msg) {
     if (!predicate) {
@@ -44,6 +47,8 @@ int main(int argc, char **argv) {
 
     // "globals"
     const char *addr = argv[1];
+    unsigned pf_cnt = 0;
+    struct plotfile_t **plotfiles;
 
     // open the current directory
     DIR *dir;
@@ -56,21 +61,43 @@ int main(int argc, char **argv) {
         int readable = !access(ent->d_name, F_OK);
 
         if (fname_matches && readable) {
+            // parse plotfile filename
             struct plotfile_t *pf = malloc(sizeof(struct plotfile_t));
             pf->fname = ent->d_name;
             sscanf(pf->fname, "%lu_%lu_%lu_%lu",
                    &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
             print_plotfile(pf);
+
+            // push plotfile onto array
+            plotfiles = realloc(plotfiles, (pf_cnt+1) * sizeof(struct plotfile_t *));
+            ensure(plotfiles != NULL, "error: realloc(plotfiles) failed\n");
+            plotfiles[pf_cnt++] = pf;
         }
     }
+    closedir(dir);
 
     // create and push each scoop
-    for (unsigned scoop = 0; scoop < 4096; scoop++) {
-        char *fname;
-        asprintf(&fname, "%s_%u.scoops", addr, scoop);
-        puts(fname);
-        free(fname);
+    for (unsigned scoop = 0; scoop < 4; scoop++) {
+        // create filename
+        char fname[256];
+        sprintf(fname, "_%s_%u.scoops", addr, scoop);
+
+        // open file (and create if necessary)
+        FILE *scoop_fp = fopen(fname, "ab");
+        p_ensure(scoop_fp != NULL, "fopen()");
+
+        // loop through plotfiles and dump their particular scoops
+        for (unsigned i = 0; i < pf_cnt; i++) {
+        }
+
+        fclose(scoop_fp);
     }
+
+    // free plotfiles
+    for (unsigned i = 0; i < pf_cnt; i++) {
+        free(plotfiles[i]);
+    }
+    free(plotfiles);
 
     return 0;
 }
