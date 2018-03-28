@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdlib.h>
-
 #include <dirent.h>
 
 void p_ensure(int predicate, const char *msg) {
@@ -18,15 +19,43 @@ void ensure(int predicate, const char *msg) {
     }
 }
 
-const char *addr = "123";
-int main(void) {
+struct plotfile_t { 
+    const char *fname;
+    uint64_t addr;    // burst address
+    uint64_t snonce;  // start nonce
+    uint64_t nonces;  // number of nonces
+    uint64_t stagger; // stagger size
+};
+
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        fprintf(stderr, "usage: %s <addr>\n", argv[0]);
+        return 1;
+    }
+
     DIR *dir;
     struct dirent *ent;
     p_ensure((dir = opendir(".")) != NULL, "opendir(\"./\")");
 
+    char *addr = argv[1];
     while ((ent = readdir(dir))) {
-        if (!strncmp(addr, ent->d_name, strlen(addr)))
-            puts(ent->d_name);
+        int fname_matches = !strncmp(addr, ent->d_name, strlen(addr));
+        int readable = !access(ent->d_name, F_OK);
+
+        if (fname_matches && readable) {
+            struct plotfile_t *pf = malloc(sizeof(struct plotfile_t));
+            pf->fname = ent->d_name;
+
+            sscanf(pf->fname, "%lu_%lu_%lu_%lu",
+                   &pf->addr, &pf->snonce, &pf->nonces, &pf->stagger);
+
+            printf("      fname: %s\n",  pf->fname);
+            printf("       addr: %lu\n", pf->addr);
+            printf("start nonce: %lu\n", pf->snonce);
+            printf("num. nonces: %lu\n", pf->nonces);
+            printf("    stagger: %lu\n", pf->stagger);
+            puts("");
+        }
     }
 
     return 0;
