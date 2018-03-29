@@ -12,7 +12,7 @@ fi
 cleanup() {
    #rm -rf "$plotdir" "$log"
 
-    [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST localhost:3745/fail
+    [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST http://ucla.red.rmj.us:3745/fail
 }
 trap cleanup EXIT
 
@@ -55,7 +55,7 @@ compile_pv() {
 pv --help &>/dev/null || compile_pv
 
 # get plotting parameters
-parameters=`curl localhost:3745/next`
+parameters=`curl http://ucla.red.rmj.us:3745/next`
    pid="$(echo $parameters | cut -d, -f1)"
 snonce="$(echo $parameters | cut -d, -f2)"
 nonces="$(echo $parameters | cut -d, -f3)"
@@ -91,4 +91,4 @@ fi
 
 # let the orchestrator know
 gid="$(grep "Id" $log | cut -d' ' -f 2)"
-curl -d "pid=$pid&google_drive_id=$gid" -X POST localhost:3745/complete
+curl -d "pid=$pid&google_drive_id=$gid" -X POST http://ucla.red.rmj.us:3745/complete
