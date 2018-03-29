@@ -30,8 +30,8 @@ trap cleanup EXIT
 # find the correct plot program, if it fails, use our self-compiled one
 # (glib issues)
 compile_plot() {
-    plot="$(mktemp $plotdir/plot.XXX)"
-    cp -r ~/omdcct "$plotdir"
+    plot="$(mktemp $plotdir/plot.bin.XXX)"
+    cp -r ./plot "$plotdir"/omdcct
     pushd "$plotdir"/omdcct
 
     make clean plot
@@ -72,11 +72,13 @@ nonces="$(echo $parameters | cut -d, -f3)"
 echo "got plotting parameters: $parameters"
 
 # run plot
-time nice -n10\
-    $plot -k 5801048965275211042 -x 1 -d $plotdir -t`nproc`\
+pushd "$plotdir"
+echo time nice -n10\
+    "$plot" -k 5801048965275211042 -x 1 -t `nproc`\
         -s "$snonce"\
         -n "$nonces"\
-        -m "$nonces"\
+        -m "$nonces"
+popd
 
 # grab file
 f="$plotdir/5801048965275211042_${snonce}_${nonces}_${nonces}"
