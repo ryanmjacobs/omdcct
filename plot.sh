@@ -95,7 +95,7 @@ log="$(mktemp /tmp/log.XXX)"
 
 # upload it
 time pv -rbpe "$f" |\
-    gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7"\
+    gdrive upload -p "1_EyTA09Jl4a3AyjuYjHEiqMMHCESe9g0"\
       -s -t "$bn" | tee $log
 
 if [ "$?" -ne 0 ]; then
