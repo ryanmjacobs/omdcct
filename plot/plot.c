@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <stdint.h>
+#include <inttypes.h>
 #include <pthread.h>
 #include <sys/time.h>
 
@@ -24,24 +26,24 @@ void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr);
 int main(int argc, char **argv) {
     struct opts_t o = get_opts(argc, argv);
 
-    printf("Creating plot for nonces %llu to %llu (%u GB) using %u MB memory and %u threads\n",
+    printf("Creating plot for nonces %"PRIu64" to %"PRIu64" (%"PRIu64" GB) using %"PRIu64" MB memory and %"PRIu64" threads\n",
             o.start_nonce,
             (o.start_nonce + o.num_nonces),
-            (unsigned int)(o.num_nonces / 4 / 1024),
-            (unsigned int)(o.stagger_size / 4),
+            (o.num_nonces / 4 / 1024),
+            (o.stagger_size / 4),
             o.num_threads);
 
     cache = calloc(PLOT_SIZE, o.stagger_size);
 
     if (cache == NULL) {
-        printf("error: allocating cache memory (%llu MB). Try lower stagger size.\n",
+        printf("error: allocating cache memory (%"PRIu64" MB). Try lower stagger size.\n",
                PLOT_SIZE*o.stagger_size/1024/1024);
         exit(-1);
     }
 
     // create filename
     char fname[100];
-    sprintf(fname, "%llu_%llu_%llu_%llu",
+    sprintf(fname, "%"PRIu64"_%"PRIu64"_%"PRIu64"_%"PRIu64,
             o.addr, o.start_nonce, o.num_nonces, o.stagger_size);
 
     // create file

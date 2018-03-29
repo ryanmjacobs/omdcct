@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include "opts.h"
 #include "helper.h"
@@ -136,6 +137,6 @@ static void calc(struct opts_t *o) {
     if (o->num_nonces % o->stagger_size != 0) {
         o->num_nonces -= o->num_nonces % o->stagger_size;
         o->num_nonces += o->stagger_size;
-        printf("Adjusting total nonces to %llu to match stagger size\n", o->num_nonces);
+        printf("Adjusting total nonces to %"PRIu64" to match stagger size\n", o->num_nonces);
     }
 }
