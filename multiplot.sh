@@ -23,7 +23,7 @@ tmux send-keys -t $sesh "tmux kill-session"
 
 for i in {1..9}; do
     m=lnxsrv0$i
-    nonces=4096
+    nonces=40960
     offset=0
 
     snonce=$(( (i-1)*nonces + 9*offset*nonces ))
