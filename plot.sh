@@ -10,7 +10,7 @@ if [ ! -d "$plotdir" ] || [ ! -O "$plotdir" ]; then
     exit 1
 fi
 cleanup() {
-    rm -rf "$plotdir" "$log"
+   #rm -rf "$plotdir" "$log"
 
     [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST localhost:3745/fail
 }
@@ -65,10 +65,11 @@ echo "got plotting parameters: $parameters"
 time nice -n10\
     $plot -k 5801048965275211042 -x 1 -d $plotdir -t`nproc`\
         -s "$snonce"\
-        -n "$nonces"
+        -n "$nonces"\
+        -m "$nonces"\
 
 # grab file
-f="$plotdir/5801048965275211042_$snonce_$nonces_*"
+f="$plotdir/5801048965275211042_${snonce}_${nonces}_${nonces}"
 if [ ! -f "$f" ]; then
     >&2 echo "error: unable to read plotfile"
     let failures++
