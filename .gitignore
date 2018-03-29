@@ -1,4 +1,5 @@
 *.o
+*.log
 
 mine
 mine_pool_all

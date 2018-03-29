@@ -47,7 +47,7 @@ void upload(const char *fname) {
     p_ensure(fp != NULL, "fopen()");
 
     char cmd[1024];
-    sprintf(cmd, "gdrive upload -f '%s'", fname);
+    sprintf(cmd, "./upload.sh %s", fname);
     system(cmd);
 }
 
