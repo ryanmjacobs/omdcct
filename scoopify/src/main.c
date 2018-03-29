@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     closedir(dir);
 
     // create and push each scoop
-    for (unsigned scoop_idx = 0; scoop_idx < 4; scoop_idx++) {
+    for (unsigned scoop_idx = 0; scoop_idx < 4096; scoop_idx++) {
         // create filename
         char fname[256];
         sprintf(fname, "_%s_%u.scoops", addr, scoop_idx);
@@ -104,12 +104,13 @@ int main(int argc, char **argv) {
             for (uint64_t x = 0; x < pf->nonces; x++) {
                 uint64_t scoop = 0;
 
-                long pos = (x*8192) + scoop_idx*64;
+                long pos = (x*8192) + scoop_idx*8;
 
                 fseek(plot_fp, pos, SEEK_SET);
                 fread(&scoop,  sizeof(uint64_t), 1, plot_fp);
+                fwrite(&scoop, sizeof(uint64_t), 1, scoop_fp);
 
-                printf("(scoop #%lu) %s : nr=%lu, scoop=%lu\n",
+                printf("(scoop #%u) %s : nr=%lu, scoop=%lu\n",
                        scoop_idx, pf->fname, x, scoop);
             }
             printf("\n");
