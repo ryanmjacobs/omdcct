@@ -62,7 +62,7 @@ for f in $plotdir/580*; do
     time pv -rbpe "$f" | gdrive upload -s -t "$bn" | tee $log
 
     id="$(grep "Id" $log | cut -d' ' -f 2)"
-    echo "$id,$fname" | tee -a ~/plot.sh.log
+    echo "$id,$bn" | tee -a ~/plot.sh.log
 
     rm -v "$log"
 done
