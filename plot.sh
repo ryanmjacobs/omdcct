@@ -73,7 +73,7 @@ echo "got plotting parameters: $parameters"
 
 # run plot
 pushd "$plotdir"
-echo time nice -n10\
+time nice -n10\
     "$plot" -k 5801048965275211042 -x 1 -t `nproc`\
         -s "$snonce"\
         -n "$nonces"\
