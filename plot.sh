@@ -1,5 +1,9 @@
 #!/bin/bash
 
+curl() {
+    LD_LIBRARY_PATH= /usr/bin/curl "$@"
+}
+
 # check for connection to orchestrator
 if [ "$(curl ucla.red.rmj.us:3745/status)" != "orchestrator" ]; then
     >&2 echo "error: unable to connect to orchestrator"
