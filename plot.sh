@@ -20,8 +20,7 @@ if [ ! -d "$plotdir" ] || [ ! -O "$plotdir" ]; then
     exit 1
 fi
 cleanup() {
-   #rm -rf "$plotdir" "$log"
-
+    rm -rf "$plotdir" "$log"
     [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST http://ucla.red.rmj.us:3745/fail
 }
 trap cleanup EXIT
