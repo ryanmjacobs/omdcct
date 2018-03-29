@@ -31,7 +31,6 @@ app.use(async (ctx, next) => {
 app.use(async ctx => {
     const p = ctx.request.body;
     const req = ctx.request.method + ctx.url;
-    ctx.body = "ok";
 
     if (req == "GET/next") {
         const pid = next_pid();
@@ -49,8 +48,11 @@ app.use(async ctx => {
         const pid = parseInt(p.pid);
         const job = db.get("ongoing").find({pid}).value();
 
-        if (!job)
-            return ctx.body = `pid ${pid} not found`;
+        if (!job) {
+            ctx.status = 404;
+            ctx.body = `pid ${pid} not found`;
+            return;
+        }
 
         // push job to completed
         job.end = new Date();
@@ -59,6 +61,9 @@ app.use(async ctx => {
 
         // remove from ongoing
         db.get("ongoing").remove({pid}).write();
+        ctx.body = "";
+    } else {
+        return ctx.status = 404;
     }
 
     db.get("aof").push(req + serialize(p)).write();

@@ -10,7 +10,7 @@ if [ ! -d $plotdir ] || [ ! -O $plotdir ]; then
     >&2 echo "error: could not open directory $plotdir for writing"
     exit 1
 fi
-trap "rm -rf $plotdir" EXIT
+trap "rm -rf $plotdir $log" EXIT
 
 # find the correct plot program, if it fails, use our self-compiled one
 # (glib issues)
@@ -48,27 +48,33 @@ compile_pv() {
 pv --help &>/dev/null || compile_pv
 
 # get plotting parameters
+parameters=`curl localhost:3745`
+   pid="$(echo $parameters | cut -d, -f1)"
+snonce="$(echo $parameters | cut -d, -f2)"
+nonces="$(echo $parameters | cut -d, -f3)"
 
+# run plot
 time nice -n10\
     $plot -k 5801048965275211042 -x 1 -d $plotdir -t`nproc`\
         -s "$snonce"\
         -n "$nonces"
 
-for f in $plotdir/580*; do
-    [ ! -f "$f" ] && break
-    echo "$f"
+# grab file
+f="$plotdir/5801048965275211042_$snonce_$nonces_*"
+if [ ! -f "$f" ]; then
+    >&2 echo "error: unable to read plotfile"
+    curl -d "pid=$pid" -X POST localhost:3745/fail
+    exit 1
+fi
 
-    log="$(mktemp /tmp/log.XXX)"
-    bn="$(basename "$f")"
+bn="$(basename "$f")"
+log="$(mktemp /tmp/log.XXX)"
 
-    time pv -rbpe "$f" |\
-        gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7"\
-          -s -t "$bn" | tee $log
+# upload it
+time pv -rbpe "$f" |\
+    gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7"\
+      -s -t "$bn" | tee $log
 
-    id="$(grep "Id" $log | cut -d' ' -f 2)"
-    echo "$id,$bn" | tee -a ~/plot.sh.log
-
-    rm -v "$log"
-done
-
-gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7" -f ~/plot.sh.log
+# let the orchestrator know
+gid="$(grep "Id" $log | cut -d' ' -f 2)"
+curl -d "pid=$pid&google_drive_id=$gid" -X POST localhost:3745/complete
