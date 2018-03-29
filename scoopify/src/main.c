@@ -42,6 +42,15 @@ void print_plotfile(struct plotfile_t *pf) {
     printf("    stagger: %lu\n\n", pf->stagger);
 }
 
+void upload(const char *fname) {
+    FILE *fp = fopen(fname, "rb");
+    p_ensure(fp != NULL, "fopen()");
+
+    char cmd[1024];
+    sprintf(cmd, "gdrive upload -f '%s'", fname);
+    system(cmd);
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "usage: %s <addr>\n", argv[0]);
@@ -120,6 +129,8 @@ int main(int argc, char **argv) {
         }
 
         fclose(scoop_fp);
+        upload(fname);
+        unlink(fname);
     }
 
     // free plotfiles
