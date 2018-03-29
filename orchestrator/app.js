@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const nonces = 40960;
+const NONCES = 40960;
 
 // database
 const low = require("lowdb");
@@ -13,8 +13,8 @@ db.defaults({
 
     aof: [],
 
-    completed: [],
-    ongoing: []
+    completed_plots: [],
+    ongoing_plots: []
 }).write();
 
 // webserver
@@ -32,21 +32,24 @@ app.use(async ctx => {
     const p = ctx.request.body;
     const req = ctx.request.method + ctx.url;
 
+    // next plot requested
     if (req == "GET/next") {
-        const pid = next_pid();
-        const snonce = next_snonce();
+        const {pid,iter,snonce,nonces} = next();
 
         // create ongoing job
-        db.get("ongoing").push({
+        db.get("ongoing_plots").push({
             started: new Date(),
-            pid, snonce, nonces
+            pid, iter
         }).write();
 
         // return parameters to the user
         ctx.body = `${pid},${snonce},${nonces}`;
-    } else if (req == "POST/complete") {
+    }
+
+    // plot completion
+    else if (req == "POST/complete") {
         const pid = parseInt(p.pid);
-        const job = db.get("ongoing").find({pid}).value();
+        const job = db.get("ongoing_plots").find({pid}).value();
 
         if (!job) {
             ctx.status = 404;
@@ -54,23 +57,26 @@ app.use(async ctx => {
             return;
         }
 
-        // push job to completed
+        // push completed plot
         job.end = new Date();
         job.google_drive_id = p.google_drive_id;
-        db.get("completed").push(job).write();
+        db.get("completed_plots").push(job).write();
 
         // remove from ongoing
-        db.get("ongoing").remove({pid}).write();
+        db.get("ongoing_plots").remove({pid}).write();
         ctx.body = "";
+
     } else if (req == "GET/fail") {
         const pid = parseInt(p.pid);
-        db.get("ongoing").remove({pid}).write();
+        db.get("ongoing_plots").remove({pid}).write();
         ctx.body = "removed pid " + pid;
-    } else if (req == "GET/status") {
-        ctx.body = "orchestrator";
-    } else {
-        return ctx.status = 404;
     }
+
+    else if (req == "GET/status")
+        ctx.body = "orchestrator";
+
+    else
+        return ctx.status = 404;
 
     db.get("aof").push(req + serialize(p)).write();
 });
@@ -82,15 +88,15 @@ function serialize(obj) {
     return str;
 }
 
-function next_pid() {
-    db.update("pid", x => x+1).write();
-    return db.get("pid").value();
-}
+function next() {
+    const pid = db.get("pid").value();
+    const iter = db.get("iter").value();
 
-function next_snonce() {
-    const snonce = db.get("iter").value() * nonces;
+    db.update("pid", x => x+1).write();
     db.update("iter", x => x+1).write();
-    return snonce;
+
+    const snonce = iter*NONCES;
+    return {pid,iter,snonce,nonces};
 }
 
 app.listen(3745, function() {
