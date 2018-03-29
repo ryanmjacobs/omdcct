@@ -37,11 +37,13 @@ app.use(async ctx => {
         const pid = next_pid();
         const snonce = next_snonce();
 
+        // create ongoing job
         db.get("ongoing").push({
             started: new Date(),
             pid, snonce, nonces
         }).write();
 
+        // return parameters to the user
         ctx.body = `${pid},${snonce},${nonces}`;
     } else if (req == "POST/complete") {
         const pid = parseInt(p.pid);
@@ -50,9 +52,12 @@ app.use(async ctx => {
         if (!job)
             return ctx.body = `pid ${pid} not found`;
 
+        // push job to completed
         job.end = new Date();
+        job.google_drive_id = p.google_drive_id;
         db.get("completed").push(job).write();
 
+        // remove from ongoing
         db.get("ongoing").remove({pid}).write();
     }
 
