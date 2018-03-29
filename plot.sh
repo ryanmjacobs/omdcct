@@ -1,8 +1,10 @@
 #!/bin/bash
 
-curl() {
-    LD_LIBRARY_PATH= /usr/bin/curl "$@"
-}
+# current script path
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# curl workaround, (becauase I messed with glibc versions)
+curl() { LD_LIBRARY_PATH= /usr/bin/curl "$@" }
 
 # check for connection to orchestrator
 if [ "$(curl ucla.red.rmj.us:3745/status)" != "orchestrator" ]; then
@@ -31,7 +33,7 @@ trap cleanup EXIT
 # (glib issues)
 compile_plot() {
     plot="$(mktemp $plotdir/plot.bin.XXX)"
-    cp -r ./plot "$plotdir"/omdcct
+    cp -r "$DIR/plot" "$plotdir"/omdcct
     pushd "$plotdir"/omdcct
 
     make clean plot
@@ -49,7 +51,7 @@ compile_pv() {
     pvdir="$(mktemp -d $plotdir/pv.XXX)"
 
    #git clone --depth=1 https://github.com/icetee/pv $pvdir
-    cp -r pv_src/* "$pvdir"
+    cp -r ~/pv_src/* "$pvdir"
     cd "$pvdir"
 
     mkdir usr
