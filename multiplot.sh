@@ -27,7 +27,7 @@ for i in {1..9}; do
     offset=0
 
     snonce=$(( (i-1)*nonces + 9*offset*nonces ))
-    echo create "ssh $m -t time ~/plot.sh $snonce $nonces" "ssh $m -t htop"
+    create "ssh $m -t time ~/plot.sh $snonce $nonces" "ssh $m -t htop"
 done
 
 tmux attach -t $sesh
