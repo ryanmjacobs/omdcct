@@ -82,6 +82,11 @@ time nice -n10\
         -m "$nonces"
 popd
 
+if [ "$?" -ne 0 ]; then
+    let failures++
+    exit 1
+fi
+
 # grab file
 f="$plotdir/5801048965275211042_${snonce}_${nonces}_${nonces}"
 if [ ! -f "$f" ]; then
