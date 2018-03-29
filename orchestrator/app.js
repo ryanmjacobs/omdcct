@@ -66,6 +66,8 @@ app.use(async ctx => {
         const pid = parseInt(p.pid);
         db.get("ongoing").remove({pid}).write();
         ctx.body = "removed pid " + pid;
+    } else if (req == "GET/status") {
+        ctx.body = "orchestrator";
     } else {
         return ctx.status = 404;
     }
