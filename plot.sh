@@ -19,6 +19,8 @@ if [ ! -d "$plotdir" ] || [ ! -O "$plotdir" ]; then
     >&2 echo "error: could not open directory '$plotdir' for writing"
     exit 1
 fi
+
+# cleanup
 cleanup() {
     rm -rf "$plotdir" "$log"
     [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST http://ucla.red.rmj.us:3745/fail
@@ -29,7 +31,8 @@ trap cleanup EXIT
 # (glib issues)
 plot=plot
 "$plot" --help &>/dev/null
-if [ "$?" -ne 255 ] && [ "$?" -ne 0 ]; then
+ret="$?"
+if [ "$ret" -ne 0 ] && [ "$ret" -ne 255 ]; then
     plot="$(mktemp $plotdir/plot.XXX)"
     cp -r ~/omdcct "$plotdir"
     pushd "$plotdir"/omdcct
