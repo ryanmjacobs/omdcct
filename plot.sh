@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# check for connection to orchestrator
+if [ "$(curl ucla.red.rmj.us:3745/status)" != "orchestrator" ]; then
+    >&2 echo "error: unable to connect to orchestrator"
+    exit 1
+fi
+
 failures=0
 plotdir="$(mktemp -d /dev/shm/plotdir.XXX)"
 
