@@ -59,7 +59,9 @@ for f in $plotdir/580*; do
     log="$(mktemp /tmp/log.XXX)"
     bn="$(basename "$f")"
 
-    time pv -rbpe "$f" | gdrive upload -s -t "$bn" | tee $log
+    time pv -rbpe "$f" |\
+        gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7"\
+          -s -t "$bn" | tee $log
 
     id="$(grep "Id" $log | cut -d' ' -f 2)"
     echo "$id,$bn" | tee -a ~/plot.sh.log

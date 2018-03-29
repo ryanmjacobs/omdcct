@@ -47,7 +47,7 @@ void upload(const char *fname) {
     p_ensure(fp != NULL, "fopen()");
 
     char cmd[1024];
-    sprintf(cmd, "./upload.sh %s", fname);
+    sprintf(cmd, "bash upload.sh %s", fname);
     system(cmd);
 }
 
@@ -93,6 +93,9 @@ int main(int argc, char **argv) {
 
     // exit if no plotfiles to process
     ensure(pf_cnt > 0, "error: no plotfiles located\n");
+
+    // create google drive folder ID
+    system("bash create_drive_folder.sh");
 
     // create and push each scoop
     for (unsigned scoop_idx = 0; scoop_idx < 4; scoop_idx++) {
