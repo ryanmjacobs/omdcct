@@ -47,6 +47,8 @@ compile_pv() {
 }
 pv --help &>/dev/null || compile_pv
 
+# get plotting parameters
+
 time nice -n10\
     $plot -k 5801048965275211042 -x 1 -d $plotdir -t`nproc`\
         -s "$snonce"\
