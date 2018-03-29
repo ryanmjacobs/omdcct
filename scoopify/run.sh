@@ -1,5 +1,5 @@
+
 #!/bin/bash
-set -e
 
 readarray lines < plot.sh.log
 
@@ -11,5 +11,9 @@ done
 ./scoopify default
 
 for l in "${lines[@]}"; do
+    id="$(cut -f1 -d, <<< "$l")"
+    fname="$(cut -f2 -d, <<< "$l")"
+
     gdrive delete -i "$id"
+    rm -v "$fname"
 done
