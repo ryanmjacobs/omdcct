@@ -4,5 +4,6 @@ compiler:
     - clang
 
 script:
+  - cd plot
   - make
   - ./test.sh
