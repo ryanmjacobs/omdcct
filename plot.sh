@@ -48,10 +48,11 @@ compile_pv() {
 pv --help &>/dev/null || compile_pv
 
 # get plotting parameters
-parameters=`curl localhost:3745`
+parameters=`curl localhost:3745/next`
    pid="$(echo $parameters | cut -d, -f1)"
 snonce="$(echo $parameters | cut -d, -f2)"
 nonces="$(echo $parameters | cut -d, -f3)"
+echo "got plotting parameters: $parameters"
 
 # run plot
 time nice -n10\
