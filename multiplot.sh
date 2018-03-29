@@ -1,4 +1,3 @@
-        sleep 0.2
 #!/bin/bash
 
 sesh="multiplot"
