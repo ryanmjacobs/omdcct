@@ -29,10 +29,7 @@ trap cleanup EXIT
 
 # find the correct plot program, if it fails, use our self-compiled one
 # (glib issues)
-plot=plot
-"$plot" --help &>/dev/null
-ret="$?"
-if [ "$ret" -ne 0 ] && [ "$ret" -ne 255 ]; then
+compile_plot() {
     plot="$(mktemp $plotdir/plot.XXX)"
     cp -r ~/omdcct "$plotdir"
     pushd "$plotdir"/omdcct
@@ -42,7 +39,8 @@ if [ "$ret" -ne 0 ] && [ "$ret" -ne 255 ]; then
     chmod +x "$plot"
 
     popd
-fi
+}
+compile_plot
 
 # self-compile pv if necessary
 compile_pv() {
