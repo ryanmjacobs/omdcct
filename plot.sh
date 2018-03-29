@@ -68,3 +68,5 @@ for f in $plotdir/580*; do
 
     rm -v "$log"
 done
+
+gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7" -f ~/plot.sh.log
