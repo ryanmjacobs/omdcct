@@ -1,5 +1,6 @@
 #!/bin/bash
 
+failures=0
 plotdir="$(mktemp -d /dev/shm/plotdir.XXX)"
 
 # plot directory setup
@@ -10,13 +11,16 @@ if [ ! -d "$plotdir" ] || [ ! -O "$plotdir" ]; then
 fi
 cleanup() {
     rm -rf "$plotdir" "$log"
+
+    [ "$failures" -ne 0 ] && curl -d "pid=$pid" -X POST localhost:3745/fail
 }
 trap cleanup EXIT
 
 # find the correct plot program, if it fails, use our self-compiled one
 # (glib issues)
 plot=plot
-if ! "$plot" --help &>/dev/null; then
+"$plot" --help &>/dev/null
+if [ "$?" -ne 255 ] && [ "$?" -ne 0 ]; then
     plot="$(mktemp $plotdir/plot.XXX)"
     cp -r ~/omdcct "$plotdir"
     pushd "$plotdir"/omdcct
@@ -30,6 +34,7 @@ fi
 
 # self-compile pv if necessary
 compile_pv() {
+    let failures++
     set -e
     pvdir="$(mktemp -d $plotdir/pv.XXX)"
 
@@ -45,6 +50,7 @@ compile_pv() {
     shopt -s expand_aliases
     alias pv="$pvdir/usr/bin/pv"
     set +e
+    let failures--
 }
 pv --help &>/dev/null || compile_pv
 
@@ -65,7 +71,7 @@ time nice -n10\
 f="$plotdir/5801048965275211042_$snonce_$nonces_*"
 if [ ! -f "$f" ]; then
     >&2 echo "error: unable to read plotfile"
-    curl -d "pid=$pid" -X POST localhost:3745/fail
+    let failures++
     exit 1
 fi
 
@@ -76,6 +82,11 @@ log="$(mktemp /tmp/log.XXX)"
 time pv -rbpe "$f" |\
     gdrive upload -p "1TCGD4Cw5liGG1TnPfB2CQzCNPNVkYgj7"\
       -s -t "$bn" | tee $log
+
+if [ "$?" -ne 0 ]; then
+    let failures++
+    exit 1
+fi
 
 # let the orchestrator know
 gid="$(grep "Id" $log | cut -d' ' -f 2)"
