@@ -49,9 +49,11 @@ int main(int argc, char **argv) {
     }
 
     // "globals"
-    const char *addr = argv[1];
     unsigned pf_cnt = 0;
     struct plotfile_t *plotfiles[MAX_PLOT_FILES];
+
+    const char *addr = strcmp(argv[1], "default")
+        ? argv[1] : "5801048965275211042";
 
     // open the current directory
     DIR *dir;
@@ -79,6 +81,9 @@ int main(int argc, char **argv) {
         }
     }
     closedir(dir);
+
+    // exit if no plotfiles to process
+    ensure(pf_cnt > 0, "error: no plotfiles located\n");
 
     // create and push each scoop
     for (unsigned scoop_idx = 0; scoop_idx < 4; scoop_idx++) {
