@@ -1,6 +1,8 @@
 #!/bin/bash
 
 plotdir=/dev/shm/plot
+snonce="$1"
+nonces="$2"
 
 # plot directory setup
 mkdir -p $plotdir
@@ -45,7 +47,11 @@ compile_pv() {
 }
 pv --help &>/dev/null || compile_pv
 
-time nice -n10 $plot -k 5801048965275211042 -x 0 -d $plotdir -t`nproc` -n $((4096*10))
+time nice -n10\
+    $plot -k 5801048965275211042 -x 1 -d $plotdir -t`nproc`\
+        -s "$snonce"\
+        -n "$nonces"
+
 for f in $plotdir/580*; do
     [ ! -f "$f" ] && break
     echo "$f"
