@@ -62,6 +62,10 @@ app.use(async ctx => {
         // remove from ongoing
         db.get("ongoing").remove({pid}).write();
         ctx.body = "";
+    } else if (req == "GET/fail") {
+        const pid = parseInt(p.pid);
+        db.get("ongoing").remove({pid}).write();
+        ctx.body = "removed pid " + pid;
     } else {
         return ctx.status = 404;
     }
