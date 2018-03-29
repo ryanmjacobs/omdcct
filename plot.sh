@@ -1,24 +1,25 @@
 #!/bin/bash
 
-plotdir=/dev/shm/plot
-snonce="$1"
-nonces="$2"
+plotdir="$(mktemp -d /dev/shm/plotdir.XXX)"
 
 # plot directory setup
-mkdir -p $plotdir
-if [ ! -d $plotdir ] || [ ! -O $plotdir ]; then
-    >&2 echo "error: could not open directory $plotdir for writing"
+mkdir -p "$plotdir"
+if [ ! -d "$plotdir" ] || [ ! -O "$plotdir" ]; then
+    >&2 echo "error: could not open directory '$plotdir' for writing"
     exit 1
 fi
-trap "rm -rf $plotdir $log" EXIT
+cleanup() {
+    rm -rf "$plotdir" "$log"
+}
+trap cleanup EXIT
 
 # find the correct plot program, if it fails, use our self-compiled one
 # (glib issues)
 plot=plot
-if ! $plot --help &>/dev/null; then
+if ! "$plot" --help &>/dev/null; then
     plot="$(mktemp $plotdir/plot.XXX)"
-    cp -r ~/omdcct $plotdir
-    pushd $plotdir/omdcct
+    cp -r ~/omdcct "$plotdir"
+    pushd "$plotdir"/omdcct
 
     make clean plot
     cp -v plot "$plot"
@@ -30,19 +31,19 @@ fi
 # self-compile pv if necessary
 compile_pv() {
     set -e
-    pvdir=$(mktemp -d $plotdir/pv.XXX)
+    pvdir="$(mktemp -d $plotdir/pv.XXX)"
 
    #git clone --depth=1 https://github.com/icetee/pv $pvdir
-    cp -r pv_src/* $pvdir
-    cd $pvdir
+    cp -r pv_src/* "$pvdir"
+    cd "$pvdir"
 
     mkdir usr
-    ./configure --prefix=$PWD/usr
+    ./configure --prefix="$PWD/usr"
     make -j8
     make install
 
     shopt -s expand_aliases
-    alias pv=$pvdir/usr/bin/pv
+    alias pv="$pvdir/usr/bin/pv"
     set +e
 }
 pv --help &>/dev/null || compile_pv
