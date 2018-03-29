@@ -4,7 +4,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # curl workaround, (becauase I messed with glibc versions)
-curl() { LD_LIBRARY_PATH= /usr/bin/curl "$@" }
+curl() { LD_LIBRARY_PATH= /usr/bin/curl "$@"; }
 
 # check for connection to orchestrator
 if [ "$(curl ucla.red.rmj.us:3745/status)" != "orchestrator" ]; then
