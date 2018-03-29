@@ -1,3 +1,4 @@
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdint.h>
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
     system("bash create_drive_folder.sh");
 
     // create and push each scoop
-    for (unsigned scoop_idx = 0; scoop_idx < 4; scoop_idx++) {
+    for (unsigned scoop_idx = 0; scoop_idx < 4096; scoop_idx++) {
         // create filename
         char fname[256];
         sprintf(fname, "_%s_%u.scoops", addr, scoop_idx);
