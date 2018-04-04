@@ -21,6 +21,7 @@ struct worker_args_t {
 
 uint64_t get_ms();
 void *work_i(void *x);
+void flush_cache(char *cache, uint64_t addr, uint64_t stagger_size);
 void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr);
 
 int main(int argc, char **argv) {
@@ -38,18 +39,6 @@ int main(int argc, char **argv) {
     if (cache == NULL) {
         printf("error: allocating cache memory (%"PRIu64" MB). Try lower stagger size.\n",
                PLOT_SIZE*o.stagger_size/1024/1024);
-        exit(-1);
-    }
-
-    // create filename
-    char fname[100];
-    sprintf(fname, "%"PRIu64"_%"PRIu64"_%"PRIu64"_%"PRIu64,
-            o.addr, o.start_nonce, o.num_nonces, o.stagger_size);
-
-    // create file
-    FILE *fp = fopen(fname, "w");
-    if(fp == NULL) {
-        printf("error: opening file %s\n", fname);
         exit(-1);
     }
 
@@ -83,14 +72,33 @@ int main(int argc, char **argv) {
 
         // write plot to disk
         print_stats(o, start_ms, nr);
-        fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
+
+        // flush cache to appropriate scoop files
+        flush_cache(cache, o.addr, o.stagger_size);
 
         o.start_nonce += o.stagger_size;
     }
 
-    fclose(fp);
     printf("\nFinished plotting.\n");
     return 0;
+}
+
+void flush_cache(char *cache, uint64_t addr, uint64_t stagger_size) {
+    for (unsigned i = 0; i < 4096; i++) {
+        // determine file name: scoop.num.addr
+        char fname[128];
+        sprintf(fname, "scoop.%u.%"PRIu64"", i, addr);
+
+        // create file
+        FILE *fp = fopen(fname, "w");
+        if (fp == NULL) {
+            fprintf(stderr, "error: unable to open file '%s'\n", fname);
+            exit(-1);
+        }
+
+      //fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
+        fclose(fp);
+    }
 }
 
 void *work_i(void *x) {
