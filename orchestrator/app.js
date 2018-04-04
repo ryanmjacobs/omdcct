@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const NONCES = 40960;
+const STAGGER_SIZE  = 40960;
+const GDRIVE_FOLDER = "1fSGVpnRxZgIU6ZSl42NIRQps1_8VqoYi";
 
 // database
 const low = require("lowdb");
@@ -8,25 +9,23 @@ const FileSync = require("lowdb/adapters/FileSync");
 const adapter = new FileSync("db.json");
 const db = low(adapter);
 db.defaults({
-    pid: 0,
+    // scoops
+    scoops: [],
+
+    // jobs
     iter: 0,
-
-    aof: [],
-
-    completed_plots: [],
-    ongoing_plots: []
+    finished: [],
+    running: []
 }).write();
 
 // webserver
 const Koa = require("koa");
-const bodyParser = require("koa-bodyparser");
 const app = new Koa();
-app.use(bodyParser());
+const logger = require("koa-logger");
+const bodyparser = require("koa-bodyparser");
 
-app.use(async (ctx, next) => {
-    console.log(ctx.method, ctx.url);
-    await next();
-});
+app.use(logger());
+app.use(bodyparser());
 
 app.use(async ctx => {
     const p = ctx.request.body;
@@ -34,51 +33,49 @@ app.use(async ctx => {
 
     // next plot requested
     if (req == "GET/next") {
-        const {pid,iter,snonce,nonces} = next();
+        const {iter,snonce,STAGGER_SIZE} = next();
 
-        // create ongoing job
-        db.get("ongoing_plots").push({
-            started: new Date(),
-            pid, iter
+        // create running job
+        db.get("running").push({
+            iter, start: new Date()
         }).write();
 
         // return parameters to the user
-        ctx.body = `${pid},${snonce},${nonces}`;
+        ctx.body = `${iter},${snonce},${STAGGER_SIZE}`;
     }
 
     // plot completion
-    else if (req == "POST/complete") {
-        const pid = parseInt(p.pid);
-        const job = db.get("ongoing_plots").find({pid}).value();
+    else if (req == "POST/done") {
+        const iter = parseInt(p.iter);
+        const job  = db.get("running").find({iter}).value();
 
         if (!job) {
             ctx.status = 404;
-            ctx.body = `pid ${pid} not found`;
+            ctx.body = `iter ${iter} not found`;
             return;
         }
 
-        // push completed plot
+        // push finished plot
         job.end = new Date();
         job.google_drive_id = p.google_drive_id;
-        db.get("completed_plots").push(job).write();
+        db.get("finished").push(job).write();
 
-        // remove from ongoing
-        db.get("ongoing_plots").remove({pid}).write();
-        ctx.body = "";
-
-    } else if (req == "GET/fail") {
-        const pid = parseInt(p.pid);
-        db.get("ongoing_plots").remove({pid}).write();
-        ctx.body = "removed pid " + pid;
+        // remove from running
+        db.get("running").remove({iter}).write();
+        ctx.body = `iter ${iter} marked as done`;
     }
 
-    else if (req == "GET/status")
-        ctx.body = "orchestrator";
+    // plot failed
+    else if (req == "POST/fail") {
+        const iter = parseInt(p.iter);
+        db.get("running").remove({iter}).write();
+        ctx.body = "removed iter " + iter;
+    }
 
+    else if (req == "GET/health-check")
+        ctx.status = 200;
     else
         return ctx.status = 404;
-
-    db.get("aof").push(req + serialize(p)).write();
 });
 
 function serialize(obj) {
@@ -89,14 +86,12 @@ function serialize(obj) {
 }
 
 function next() {
-    const pid = db.get("pid").value();
     const iter = db.get("iter").value();
 
-    db.update("pid", x => x+1).write();
     db.update("iter", x => x+1).write();
 
-    const snonce = iter*NONCES;
-    return {pid,iter,snonce,nonces};
+    const snonce = iter*STAGGER_SIZE;
+    return {iter,snonce,STAGGER_SIZE};
 }
 
 app.listen(3745, function() {
