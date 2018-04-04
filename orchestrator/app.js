@@ -74,6 +74,7 @@ app.use(async ctx => {
     // client requests for a scoop to be locked,
     // so they can append and upload their changes
     else if (req == "POST/lock") {
+        const iter = parseInt(p.iter);
         const ref = `scoops[${parseInt(p.scoop)}]`;
         const scoop = db.get(ref).value();
 
@@ -85,7 +86,7 @@ app.use(async ctx => {
         }
 
         // lock and return scoop link
-        scoop.locked = true;
+        scoop.locked = iter;
         db.set(ref, scoop).write();
         ctx.body = `${scoop.link}`;
     }
@@ -93,14 +94,13 @@ app.use(async ctx => {
     // Set new scoop link, then unlock it so that
     // other clients can lock, append, and upload
     else if (req == "POST/unlock") {
+        const iter = parseInt(p.iter);
         const ref = `scoops[${parseInt(p.scoop)}]`;
         const scoop = db.get(ref).value();
 
-        console.log(ref);
-
-        // only locked scoops can be unlocked
-        if (!scoop.locked) {
-            ctx.body = `refusing to set link for unlocked scoop[${p.scoop}]`;
+        // only the owner of a lock can unlock it
+        if (iter != scoop.locked) {
+            ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
             return;
         }
