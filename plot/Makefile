@@ -33,5 +33,5 @@ shabal64.o: shabal64.s
 clean:
 	rm -rf *.o
 	rm -rf 123_*
-	rm -rf scoop.*.*
+	rm -rf scoop_*_*
 	rm -rf plot mine mine_pool mine_pool_all

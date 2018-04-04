@@ -21,7 +21,7 @@ struct worker_args_t {
 
 uint64_t get_ms();
 void *work_i(void *x);
-void flush_cache(char *cache, uint64_t addr, uint64_t stagger_size);
+void flush_cache(char *cache, struct opts_t o);
 void print_stats(struct opts_t o, uint64_t start_ms, uint64_t nr);
 
 int main(int argc, char **argv) {
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
         print_stats(o, start_ms, nr);
 
         // flush cache to appropriate scoop files
-        flush_cache(cache, o.addr, o.stagger_size);
+        flush_cache(cache, o);
 
         o.start_nonce += o.stagger_size;
     }
@@ -83,22 +83,33 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void flush_cache(char *cache, uint64_t addr, uint64_t stagger_size) {
-    for (unsigned i = 0; i < 4096; i++) {
+void flush_cache(char *cache, struct opts_t o) {
+    static const char *mode = "w";
+
+    for (unsigned sn = 0; sn < 4096; sn++) {
         // determine file name: scoop.num.addr
         char fname[128];
-        sprintf(fname, "scoop.%u.%"PRIu64"", i, addr);
+        sprintf(fname, "scoop_%u_%"PRIu64"", sn, o.addr);
 
         // create file
-        FILE *fp = fopen(fname, "w");
+        FILE *fp = fopen(fname, mode);
         if (fp == NULL) {
             fprintf(stderr, "error: unable to open file '%s'\n", fname);
             exit(-1);
         }
 
-      //fwrite(cache, PLOT_SIZE, o.stagger_size, fp);
+        // plot header
+        fprintf(fp, "__%"PRIu64"_%"PRIu64"_%"PRIu64"__",
+                o.addr, o.start_nonce, o.stagger_size);
+
+        // write the scoop of each nonce to our file
+        for (unsigned nonce = 0; nonce < o.stagger_size; nonce++)
+            fwrite(cache + 8192*nonce + 64*sn, 64, 1, fp);
+
         fclose(fp);
     }
+
+    mode = "a";
 }
 
 void *work_i(void *x) {
