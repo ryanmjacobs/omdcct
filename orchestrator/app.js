@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-const STAGGER_SIZE  = 40960;
-const GDRIVE_FOLDER = "1fSGVpnRxZgIU6ZSl42NIRQps1_8VqoYi";
+const STAGGER_SIZE = 10;
 
 // database
 const low = require("lowdb");
@@ -96,6 +95,8 @@ app.use(async ctx => {
     else if (req == "POST/unlock") {
         const ref = `scoops[${parseInt(p.scoop)}]`;
         const scoop = db.get(ref).value();
+
+        console.log(ref);
 
         // only locked scoops can be unlocked
         if (!scoop.locked) {
