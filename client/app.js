@@ -7,11 +7,14 @@ async function main() {
     const res = await axios.get("http://localhost:3745/health-check");
     console.log(res.data);
 
-    fs.readdirSync(".").forEach(file => {
-        if (!file.match(/scoop_.*_.*/))
-            return;
-        console.log(file);
-    });
+    for (let i = 0; i < 4096; i++) {
+        const fname = `scoop_${i}_5801048965275211042`;
+
+        if (!fs.existsSync(`scoop_${i}_5801048965275211042`))
+            continue;
+
+        console.log(fname);
+    }
 }
 
 const iter = parseInt(process.argv[2]);
