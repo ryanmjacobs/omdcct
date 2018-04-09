@@ -147,6 +147,7 @@ app.use(async (ctx,next) => {
     else if (req == "GET/killall") {
         ctx.body = `killing ${db.get("running").value().length} job(s)`;
         db.set("running", []).write();
+        purge_locks();
         ctx.status = 200;
     }
 
