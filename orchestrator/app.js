@@ -26,13 +26,13 @@ const bodyparser = require("koa-bodyparser");
 app.use(logger());
 app.use(bodyparser());
 
-app.use(async ctx => {
+app.use(async (ctx,next) => {
     const p = ctx.request.body;
     const req = ctx.request.method + ctx.url;
 
     // next plot requested
     if (req == "GET/next") {
-        const {iter,snonce,STAGGER_SIZE} = next();
+        const {iter,snonce,STAGGER_SIZE} = next_iter();
 
         // create running job
         db.get("running").push({
@@ -52,7 +52,7 @@ app.use(async ctx => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            return;
+            next();
         }
 
         // push finished plot
@@ -73,7 +73,7 @@ app.use(async ctx => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            return;
+            next();
         }
 
         db.get("running").remove({iter}).write();
@@ -90,12 +90,11 @@ app.use(async ctx => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            return;
+            next();
         }
 
         const i = parseInt(p.scoop);
         const scoops = db.get("scoops").value();
-        console.log(scoops[i]);
 
         purge_locks();
 
@@ -103,7 +102,7 @@ app.use(async ctx => {
         if (scoops[i].locked) {
             ctx.body = `scoop #${p.scoop} is already locked`;
             ctx.status = 409;
-            return;
+            next();
         }
 
         // lock and return scoop link
@@ -120,15 +119,14 @@ app.use(async ctx => {
         const scoops = db.get("scoops").value();
 
         // only the owner of a lock can unlock it
-        console.log(scoops[i]);
         if (scoops[i].locked === false) {
             ctx.body = `scoop[${p.scoop}] is already unlocked`;
             ctx.status = 409;
-            return;
+            next();
         } else if (iter != scoops[i].locked) {
             ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
-            return;
+            next();
         }
 
         // write link and unlock
@@ -141,7 +139,17 @@ app.use(async ctx => {
     else if (req == "GET/health-check")
         ctx.status = 200;
     else
-        return ctx.status = 404;
+        ctx.status = 404;
+
+    next();
+});
+
+app.use(async ctx => {
+    console.log(
+        ctx.response.status  + " "  +
+        ctx.response.message + ", " +
+        ctx.response.body
+    );
 });
 
 // unlock all scoops that have expired an owner
@@ -166,7 +174,7 @@ function serialize(obj) {
     return str;
 }
 
-function next() {
+function next_iter() {
     const iter = db.get("iter").value();
 
     db.update("iter", x => x+1).write();
