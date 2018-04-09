@@ -27,7 +27,7 @@ ensure() {
 # cleanup
 cleanup() {
     rm -rf "$plotdir" "$log"
-    [ "$failures" -ne 0 ] && curl -d "iter=$iter" -X POST $ORCHESTRATOR/fail
+    [ "$failures" -ne 0 ] && curl -d "iter=$iter" -X POST "$ORCHESTRATOR/fail"
 }
 trap cleanup EXIT
 
@@ -76,7 +76,7 @@ compile_pv() {
 pv --help &>/dev/null || compile_pv
 
 # get plotting parameters
-parameters=`curl $ORCHESTRATOR/next`
+parameters=`curl "$ORCHESTRATOR/next"`
   iter="$(echo $parameters | cut -d, -f1)"
 snonce="$(echo $parameters | cut -d, -f2)"
 nonces="$(echo $parameters | cut -d, -f3)"
@@ -94,8 +94,7 @@ ensure $? -eq 0
 
 ####
 # upload the scoops
-rm -f "$plotdir"/scoop_???*_*
-rm -f "$plotdir"/scoop_{5..900}_*
+rm -f "$plotdir"/scoop_{4..4095}_5801048965275211042
 while true; do
     node "$DIR"/upload.js "$plotdir" "$iter"
     ls "$plotdir"/scoop_* || break # exit when we have nothing left to upload

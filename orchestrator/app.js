@@ -118,12 +118,13 @@ app.use(async (ctx,next) => {
     // Set new scoop link, then unlock it so that
     // other clients can lock, append, and upload
     else if (req == "POST/unlock") {
+        console.log(p);
+
         const iter = parseInt(p.iter);
         const i = parseInt(p.scoop);
         const scoops = db.get("scoops").value();
 
         // only the owner of a lock can unlock it
-        console.log(scoops[i]);
         if (scoops[i].locked === false) {
             ctx.body = `scoop[${p.scoop}] is already unlocked`;
             ctx.status = 409;
@@ -141,6 +142,12 @@ app.use(async (ctx,next) => {
         scoops[i].locked = false;
         db.set("scoops", scoops).write();
         ctx.body = `successfully set scoop[${p.scoop}].link to '${p.link}'`;
+    }
+
+    else if (req == "GET/killall") {
+        ctx.body = `killing ${db.get("running").value().length} job(s)`;
+        db.set("running", []).write();
+        ctx.status = 200;
     }
 
     else if (req == "GET/health-check")
