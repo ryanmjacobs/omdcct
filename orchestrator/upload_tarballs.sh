@@ -54,6 +54,6 @@ echo "obtaining lock..."; (
   if [ "$tarsize" -gt "$((50*1024*1024))" ]; then
       time stage
       time upload
-     #rm -v "${scoop_tars[@]}"
+      rm -v "${scoop_tars[@]}"
   fi
 ) 200>upload_tarballs.lockfile 
