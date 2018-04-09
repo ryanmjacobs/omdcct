@@ -5,8 +5,8 @@ ORCHESTRATOR=http://localhost:3745
 
 curl() { `which curl` -s "$@"; }
 
-# current script path
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# (current script path)/..
+UDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/..
 
 # check for connection to orchestrator
 if [ "$(curl $ORCHESTRATOR/health-check)" != "OK" ]; then
@@ -42,7 +42,7 @@ fi
 # self compile our plot program
 compile_plot() {
     plot="$(mktemp $plotdir/plot.bin.XXX)"
-    cp -r "$DIR/plot" "$plotdir"/omdcct
+    cp -r "$UDIR/plot" "$plotdir"/omdcct
     pushd "$plotdir"/omdcct
 
     make clean plot
