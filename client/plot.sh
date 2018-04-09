@@ -94,6 +94,7 @@ ensure $? -eq 0
 
 ####
 # upload the scoops
+rm -rf "$plotdir"/scoop_{10..4096}_*
 while true; do
     # upload as many scoops as we can
     node "$DIR"/upload.js "$plotdir" "$iter"
