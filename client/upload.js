@@ -21,7 +21,7 @@ async function main(iter) {
         console.log(fname);
 
         // lock scoop
-        await axios.post("http://localhost:3745/lock", {iter, scoop: i})
+        axios.post("http://localhost:3745/lock", {iter, scoop: i})
           .catch(e => {
               // already locked, just move on
               if (e.response.status == 409) {
