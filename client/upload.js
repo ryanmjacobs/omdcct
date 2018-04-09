@@ -4,7 +4,7 @@ const fs = require("fs");
 const axios = require("axios");
 const exec = require("child_process").exec;
 
-async function main(iter) {
+async function main(plotdir, iter) {
     // do a quick service check
     let res = await axios.get("http://localhost:3745/health-check")
                .catch(e => console.log(e.response.data));
@@ -13,9 +13,9 @@ async function main(iter) {
     console.log(res.data);
 
     for (let i = 0; i < 4096; i++) {
-        const fname = `scoop_${i}_5801048965275211042`;
+        const fname = `${plotdir}/scoop_${i}_5801048965275211042`;
 
-        if (!fs.existsSync(`scoop_${i}_5801048965275211042`))
+        if (!fs.existsSync(fname))
             continue;
 
         console.log(fname);
@@ -68,10 +68,12 @@ async function main(iter) {
     }
 }
 
-const iter = parseInt(process.argv[2]);
+const plotdir = process.argv[2];
+const iter    = parseInt(process.argv[3]);
+
 if (isNaN(iter)) {
-    console.error(`usage: ${process.argv[1]} <iter>`);
+    console.error(`usage: ${process.argv[1]} <plotdir> <iter>`);
     process.exit(1);
 }
 
-main(iter);
+main(plotdir, iter);

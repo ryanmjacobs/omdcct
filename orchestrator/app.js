@@ -57,7 +57,6 @@ app.use(async ctx => {
 
         // push finished plot
         job.end = new Date();
-        job.google_drive_id = p.google_drive_id;
         db.get("finished").push(job).write();
 
         // remove from running
@@ -94,47 +93,48 @@ app.use(async ctx => {
             return;
         }
 
-        const ref = `scoops[${parseInt(p.scoop)}]`;
-        const scoop = db.get(ref).value();
-        console.log(scoop);
+        const i = parseInt(p.scoop);
+        const scoops = db.get("scoops").value();
+        console.log(scoops[i]);
 
         purge_locks();
 
         // scoop already locked
-        if (scoop.locked) {
+        if (scoops[i].locked) {
             ctx.body = `scoop #${p.scoop} is already locked`;
             ctx.status = 409;
             return;
         }
 
         // lock and return scoop link
-        scoop.locked = iter;
-        db.set(ref, scoop).write();
-        ctx.body = `${scoop.link}`;
+        scoops[i].locked = iter;
+        db.set("scoops", scoops).write();
+        ctx.body = `${scoops[i].link}`;
     }
 
     // Set new scoop link, then unlock it so that
     // other clients can lock, append, and upload
     else if (req == "POST/unlock") {
         const iter = parseInt(p.iter);
-        const ref = `scoops[${parseInt(p.scoop)}]`;
-        const scoop = db.get(ref).value();
+        const i = parseInt(p.scoop);
+        const scoops = db.get("scoops").value();
 
         // only the owner of a lock can unlock it
-        if (scoop.locked === false) {
+        console.log(scoops[i]);
+        if (scoops[i].locked === false) {
             ctx.body = `scoop[${p.scoop}] is already unlocked`;
             ctx.status = 409;
             return;
-        } else if (iter != scoop.locked) {
+        } else if (iter != scoops[i].locked) {
             ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
             return;
         }
 
         // write link and unlock
-        scoop.link = p.link;
-        scoop.locked = false;
-        db.set(ref, scoop).write();
+        scoops[i].link = p.link;
+        scoops[i].locked = false;
+        db.set("scoops", scoops).write();
         ctx.body = `successfully set scoop[${p.scoop}].link to '${p.link}'`;
     }
 

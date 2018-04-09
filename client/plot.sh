@@ -5,8 +5,8 @@ ORCHESTRATOR=http://localhost:3745
 
 curl() { `which curl` -s "$@"; }
 
-# (current script path)/..
-UDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/..
+# current script path
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # check for connection to orchestrator
 if [ "$(curl $ORCHESTRATOR/health-check)" != "OK" ]; then
@@ -42,7 +42,7 @@ fi
 # self compile our plot program
 compile_plot() {
     plot="$(mktemp $plotdir/plot.bin.XXX)"
-    cp -r "$UDIR/plot" "$plotdir"/omdcct
+    cp -r "$DIR/../plot" "$plotdir"/omdcct
     pushd "$plotdir"/omdcct
 
     make clean plot
@@ -94,74 +94,13 @@ ensure $? -eq 0
 
 ####
 # upload the scoops
-pushd "$plotdir"
-
-# create sparse array of upload status
-uploaded=()
-for n in {0..4095}; do
-    uploaded[$n]=0
+rm -f "$plotdir"/scoop_???*_*
+rm -f "$plotdir"/scoop_{5..900}_*
+while true; do
+    node "$DIR"/upload.js "$plotdir" "$iter"
+    ls "$plotdir"/scoop_* || break # exit when we have nothing left to upload
+    sleep 5
 done
 
-sum_uploads() {
-    sum=0
-    for n in {0..4095}; do
-        let sum+=${uploaded[n]}
-    done
-    echo $sum
-}
-
-# returns 0 if all uploads have been completed
-uploads_complete() {
-    sum=`sum_uploads`
-    [ $sum -eq 4096 ] && return 0 || return 1
-}
-
-# upload a file and echo the ID
-gdrive_upload() {
-    log="$(mktemp $plotdir/log.XXX)"
-
-    # upload it
-    pv -rbpe "$1" | gdrive upload -p "$GDRIVE_PARENT" -s -t "$1" > $log
-    ensure "$?" -eq 0
-
-    # let the orchestrator know
-    gid="$(grep "Id" $log | cut -d' ' -f 2)"
-    echo "$gid"
-}
-
-while ! uploads_complete; do
-    echo uploads completed: `sum_uploads`
-
-    for n in {0..4095}; do
-        echo -e "\n"
-        sleep 1
-
-        f="scoop_${n}_5801048965275211042"
-        ensure -f "$f"
-
-        gdrive_link=`curl -d "scoop=$n" -X POST $ORCHESTRATOR/lock`
-        echo res: $gdrive_link
-
-        if [[ "$gdrive_link" =~ *"already locked"* ]]; then
-            # skip locked scoops
-            continue
-        elif [ "$gdrive_link" != "null" ] && [ "$gdrive_link" != "undefined" ]; then
-            # download, append, upload -> unlock
-            gdrive download -i "$gdrive_link" -s >> "$f"
-        fi
-
-        gid=`gdrive_upload "$f"`
-        curl -d "scoop=$n&link=$gid" -X POST $ORCHESTRATOR/unlock
-        echo
-        gdrive delete -i "$gdrive_link"
-
-        uploads[$n]=1
-    done
-
-    sleep 1
-done
-
-popd
-exit
-
-curl -d "iter=$iter&google_drive_id=$gid" -X POST $ORCHESTRATOR/complete
+curl -d "iter=$iter" -X POST "$ORCHESTRATOR/done"
+echo

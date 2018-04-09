@@ -13,6 +13,6 @@ fi
 
 # upload to drive
 log="$(mktemp)"
-pv -rbpe "$file" | gdrive upload -p "$parent" -s -t "$file" > "$log"
+pv -rbpe "$file" | gdrive upload -p "$parent" -s -t "$(basename "$file")" > "$log"
 grep ^Id "$log" | cut -d' ' -f2
 rm -f "$log"

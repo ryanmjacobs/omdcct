@@ -9,6 +9,7 @@
   "author": "Ryan Jacobs <ryan.mjacobs@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0"
+    "axios": "^0.18.0",
+    "es6-promise-pool": "^2.5.0"
   }
 }
