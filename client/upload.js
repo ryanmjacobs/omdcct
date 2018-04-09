@@ -5,7 +5,8 @@ const axios = require("axios");
 const exec = require("child_process").exec;
 
 async function main(iter) {
-    const res = await axios.get("http://localhost:3745/health-check");
+    let res = await axios.get("http://localhost:3745/health-check")
+               .catch(e => console.log(e.response.data));
     console.log(res.data);
 
     for (let i = 0; i < 4096; i++) {
@@ -17,7 +18,7 @@ async function main(iter) {
         console.log(fname);
 
         // lock scoop
-        const res =
+        res =
           await axios.post("http://localhost:3745/lock", {iter, scoop: i})
             .catch(e => {
                 // already locked, just move on
@@ -27,19 +28,22 @@ async function main(iter) {
             });
 
         // locked succesfully! now upload our scoop
-        const link = res.data;
-        await new Promise((resolve, reject) => {
-            exec(`bash ./upload.sh ${fname} ${link}`, function(err, stdout, stderr) {
-                console.log("stdout:", stdout);
-                if (stderr)
+        const oldlink = res.data;
+        const link = await new Promise((resolve, reject) => {
+            exec(`bash ./upload.sh ${fname} ${oldlink}`, function(err, stdout, stderr) {
+                if (err) {
+                    console.log("stdout:", stdout);
                     console.log("stderr:", stderr);
-
-                if (err)
                     reject();
+                }
 
-                resolve();
+                resolve(stdout.trim());
             });
         });
+
+        // upload our 
+        res = await axios.post("http://localhost:3745/unlock", {scoop:i, link, iter})
+               .catch(e => console.log(e.response.data));
     }
 }
 
@@ -48,4 +52,5 @@ if (isNaN(iter)) {
     console.error(`usage: ${process.argv[1]} <iter>`);
     process.exit(1);
 }
+
 main(iter);
