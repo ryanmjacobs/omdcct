@@ -18,32 +18,44 @@ async function main(iter) {
         console.log(fname);
 
         // lock scoop
-        res =
-          await axios.post("http://localhost:3745/lock", {iter, scoop: i})
-            .catch(e => {
-                // already locked, just move on
-                if (e.response.status == 409) {
-                    console.log(`scoop #${i} already locked...`);
-                }
-            });
+        await axios.post("http://localhost:3745/lock", {iter, scoop: i})
+          .catch(e => {
+              // already locked, just move on
+              if (e.response.status == 409) {
+                  console.log(`scoop #${i} already locked...`);
+                  return "skip";
+              } else {
+                  console.log(e.response.status, e.response.data);
+                  return "skip"; // uh oh, error not handled right now
+              }
+              return "good";
+          })
+          .then(res => {
+              if (res == "skip")
+                  return res;
 
-        // locked succesfully! now upload our scoop
-        const oldlink = res.data;
-        const link = await new Promise((resolve, reject) => {
-            exec(`bash ./upload.sh ${fname} ${oldlink}`, function(err, stdout, stderr) {
-                if (err) {
-                    console.log("stdout:", stdout);
-                    console.log("stderr:", stderr);
-                    reject();
-                }
+              return new Promise((resolve, reject) => {
+                  const oldlink = res.data;
 
-                resolve(stdout.trim());
-            });
-        });
+                  // locked succesfully! now upload our scoop
+                  exec(`bash ./upload.sh ${fname} ${oldlink}`, function(err, stdout, stderr) {
+                      if (err) {
+                          console.log("stdout:", stdout);
+                          console.log("stderr:", stderr);
+                          reject();
+                      }
 
-        // upload our 
-        res = await axios.post("http://localhost:3745/unlock", {scoop:i, link, iter})
-               .catch(e => console.log(e.response.data));
+                      resolve(stdout.trim());
+                  });
+              });
+          })
+          .then(link => {
+              if (link == "skip")
+                  return link;
+
+              axios.post("http://localhost:3745/unlock", {scoop:i, link, iter})
+                .catch(e => console.log(e.response.data));
+          });
     }
 }
 

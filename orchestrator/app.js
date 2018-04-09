@@ -48,6 +48,7 @@ app.use(async ctx => {
         const iter = parseInt(p.iter);
         const job  = db.get("running").find({iter}).value();
 
+        // only running jobs can post completion
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
@@ -67,6 +68,15 @@ app.use(async ctx => {
     // plot failed
     else if (req == "POST/fail") {
         const iter = parseInt(p.iter);
+
+        // only running jobs can fail
+        const job = db.get("running").find({iter}).value();
+        if (!job) {
+            ctx.status = 404;
+            ctx.body = `iter ${iter} not found`;
+            return;
+        }
+
         db.get("running").remove({iter}).write();
         ctx.body = "removed iter " + iter;
     }
@@ -74,12 +84,21 @@ app.use(async ctx => {
     // client requests for a scoop to be locked,
     // so they can append and upload their changes
     else if (req == "POST/lock") {
-        purge_locks();
-
         const iter = parseInt(p.iter);
+
+        // only running jobs can place locks
+        const job = db.get("running").find({iter}).value();
+        if (!job) {
+            ctx.status = 404;
+            ctx.body = `iter ${iter} not found`;
+            return;
+        }
+
         const ref = `scoops[${parseInt(p.scoop)}]`;
         const scoop = db.get(ref).value();
         console.log(scoop);
+
+        purge_locks();
 
         // scoop already locked
         if (scoop.locked) {
