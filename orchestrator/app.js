@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-const STAGGER_SIZE = 10;
+const STAGGER_SIZE = 50;
+
+// misc
+const fs = require("fs");
+const pb = require("pretty-bytes");
 
 // database
-const fs = require("fs");
 const low = require("lowdb");
 const FileSync = require("lowdb/adapters/FileSync");
 const adapter = new FileSync("db.json");
@@ -158,17 +161,12 @@ app.use(async (ctx,next) => {
 
     else if (req.match(/^POST\/tarball\/\n*/)) {
         const iter = parseInt(req.split("/")[2]);
+        const size = pb(parseInt(ctx.request.header["content-length"]));
+        console.log(`receiving tarball for iter #${iter} (${size})`);
 
-        console.log("receiving tarball for iter #" + iter);
-
-      //console.log(ctx.req);
-      //ctx.req.on("data", function(data) {
-      //    console.log(data);
-      //});
         const stream = fs.createWriteStream(`/tmp/scoops.${iter}.tar`);
         ctx.req.pipe(stream);
-
-        ctx.body = "asdofjk";
+        ctx.status = 200;
     }
 
     else if (req == "GET/health-check")
