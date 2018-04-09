@@ -3,6 +3,7 @@
 const STAGGER_SIZE = 10;
 
 // database
+const fs = require("fs");
 const low = require("lowdb");
 const FileSync = require("lowdb/adapters/FileSync");
 const adapter = new FileSync("db.json");
@@ -24,7 +25,11 @@ const logger = require("koa-logger");
 const bodyparser = require("koa-bodyparser");
 
 app.use(logger());
-app.use(bodyparser());
+app.use(bodyparser({
+    extendTypes: {
+        bin: "application/octet-stream"
+    }
+}));
 
 app.use(async (ctx,next) => {
     const p = ctx.request.body;
@@ -52,7 +57,7 @@ app.use(async (ctx,next) => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            next();
+            await next();
             return;
         }
 
@@ -74,7 +79,7 @@ app.use(async (ctx,next) => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            next();
+            await next();
             return;
         }
 
@@ -92,7 +97,7 @@ app.use(async (ctx,next) => {
         if (!job) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
-            next();
+            await next();
             return;
         }
 
@@ -105,7 +110,7 @@ app.use(async (ctx,next) => {
         if (scoops[i].locked != false && scoops[i].locked != iter) {
             ctx.body = `scoop #${p.scoop} is already locked by someone else`;
             ctx.status = 409;
-            next();
+            await next();
             return;
         }
 
@@ -128,12 +133,12 @@ app.use(async (ctx,next) => {
         if (scoops[i].locked === false) {
             ctx.body = `scoop[${p.scoop}] is already unlocked`;
             ctx.status = 409;
-            next();
+            await next();
             return;
         } else if (iter != scoops[i].locked) {
             ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
-            next();
+            await next();
             return;
         }
 
@@ -151,12 +156,27 @@ app.use(async (ctx,next) => {
         ctx.status = 200;
     }
 
+    else if (req.match(/^POST\/tarball\/\n*/)) {
+        const iter = parseInt(req.split("/")[2]);
+
+        console.log("receiving tarball for iter #" + iter);
+
+      //console.log(ctx.req);
+      //ctx.req.on("data", function(data) {
+      //    console.log(data);
+      //});
+        const stream = fs.createWriteStream(`/tmp/scoops.${iter}.tar`);
+        ctx.req.pipe(stream);
+
+        ctx.body = "asdofjk";
+    }
+
     else if (req == "GET/health-check")
         ctx.status = 200;
     else
         ctx.status = 404;
 
-    next();
+    await next();
 });
 
 app.use(async ctx => {

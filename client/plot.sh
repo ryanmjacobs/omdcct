@@ -93,17 +93,14 @@ popd
 ensure $? -eq 0
 
 ####
-# upload the scoops
-rm -rf "$plotdir"/scoop_{10..4096}_*
-while true; do
-    # upload as many scoops as we can
-    node "$DIR"/upload.js "$plotdir" "$iter"
+# tar and upload the scoops
+pushd "$plotdir"
+tarf="scoops.$iter.tar"
+tar cf "$tarf" scoop_*
+curl --data-binary "@$tarf" -H "Content-Type:application/octet-stream"\
+     -X POST "$ORCHESTRATOR/tarball/$iter"
+popd
 
-    # exit when we have nothing left to upload
-    ls "$plotdir"/scoop_ &>/dev/null || break
-
-    sleep 5
-done
-
+# tell the server we're done
 curl -d "iter=$iter" -X POST "$ORCHESTRATOR/done"
 echo
