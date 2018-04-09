@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const STAGGER_SIZE = 50;
+const STAGGER_SIZE = 40960;
 
 // misc
 const fs = require("fs");
