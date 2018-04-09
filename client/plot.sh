@@ -94,10 +94,13 @@ ensure $? -eq 0
 
 ####
 # upload the scoops
-rm -f "$plotdir"/scoop_{4..4095}_5801048965275211042
 while true; do
+    # upload as many scoops as we can
     node "$DIR"/upload.js "$plotdir" "$iter"
-    ls "$plotdir"/scoop_* || break # exit when we have nothing left to upload
+
+    # exit when we have nothing left to upload
+    ls "$plotdir"/scoop_ &>/dev/null || break
+
     sleep 5
 done
 
