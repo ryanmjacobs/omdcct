@@ -102,8 +102,8 @@ app.use(async (ctx,next) => {
         purge_locks();
 
         // scoop already locked
-        if (scoops[i].locked) {
-            ctx.body = `scoop #${p.scoop} is already locked`;
+        if (scoops[i].locked != iter) {
+            ctx.body = `scoop #${p.scoop} is already locked by someone else`;
             ctx.status = 409;
             next();
             return;
@@ -198,8 +198,10 @@ function next_iter() {
 }
 
 function default_scoops() {
-    return (new Array(4096))
-        .fill({locked:false, link:null});
+    let a = [];
+    for (let i = 0; i < 4096; i++)
+        a[i] = {locked:false, link:null};
+    return a;
 }
 
 app.listen(3745, function() {
