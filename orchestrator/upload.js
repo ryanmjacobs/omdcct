@@ -27,7 +27,7 @@ function* create_generator() {
         if (fs.existsSync(fname)) {
             console.log(fname);
 
-            yield axios.post("http://localhost:3745/lock", {iter, scoop})
+            yield axios.post("http://ucla.rmj.us:3745/lock", {iter, scoop})
               .catch(e => {
                   // already locked, just move on
                   if (e.response.status == 409) {
@@ -62,7 +62,7 @@ function* create_generator() {
                   if (link == "skip")
                       return link;
 
-                  return axios.post("http://localhost:3745/unlock", {scoop, link, iter})
+                  return axios.post("http://ucla.rmj.us:3745/unlock", {scoop, link, iter})
                     .catch(e => console.log(e.response.data));
               }).then(res => {
                   if (res == "skip")

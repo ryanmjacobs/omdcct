@@ -1,7 +1,7 @@
 #!/bin/bash
 LD_LIBRARY_PATH=
 GDRIVE_PARENT="1fSGVpnRxZgIU6ZSl42NIRQps1_8VqoYi"
-ORCHESTRATOR=http://localhost:3745
+ORCHESTRATOR=http://ucla.rmj.us:3745
 
 curl() { `which curl` -s "$@"; }
 
