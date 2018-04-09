@@ -16,3 +16,8 @@ log="$(mktemp)"
 pv -rbpe "$file" | gdrive upload -p "$parent" -s -t "$(basename "$file")" > "$log"
 grep ^Id "$log" | cut -d' ' -f2
 rm -f "$log"
+
+# delete old file
+if [ "$link" != "null" ]; then
+    gdrive delete -i "$link" &>/dev/null
+fi

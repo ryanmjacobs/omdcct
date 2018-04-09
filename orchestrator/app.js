@@ -53,6 +53,7 @@ app.use(async (ctx,next) => {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
             next();
+            return;
         }
 
         // push finished plot
@@ -74,6 +75,7 @@ app.use(async (ctx,next) => {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
             next();
+            return;
         }
 
         db.get("running").remove({iter}).write();
@@ -91,6 +93,7 @@ app.use(async (ctx,next) => {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
             next();
+            return;
         }
 
         const i = parseInt(p.scoop);
@@ -103,6 +106,7 @@ app.use(async (ctx,next) => {
             ctx.body = `scoop #${p.scoop} is already locked`;
             ctx.status = 409;
             next();
+            return;
         }
 
         // lock and return scoop link
@@ -119,14 +123,17 @@ app.use(async (ctx,next) => {
         const scoops = db.get("scoops").value();
 
         // only the owner of a lock can unlock it
+        console.log(scoops[i]);
         if (scoops[i].locked === false) {
             ctx.body = `scoop[${p.scoop}] is already unlocked`;
             ctx.status = 409;
             next();
+            return;
         } else if (iter != scoops[i].locked) {
             ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
             next();
+            return;
         }
 
         // write link and unlock
