@@ -74,9 +74,12 @@ app.use(async ctx => {
     // client requests for a scoop to be locked,
     // so they can append and upload their changes
     else if (req == "POST/lock") {
+        purge_locks();
+
         const iter = parseInt(p.iter);
         const ref = `scoops[${parseInt(p.scoop)}]`;
         const scoop = db.get(ref).value();
+        console.log(scoop);
 
         // scoop already locked
         if (scoop.locked) {
@@ -99,7 +102,11 @@ app.use(async ctx => {
         const scoop = db.get(ref).value();
 
         // only the owner of a lock can unlock it
-        if (iter != scoop.locked) {
+        if (scoop.locked === false) {
+            ctx.body = `scoop[${p.scoop}] is already unlocked`;
+            ctx.status = 409;
+            return;
+        } else if (iter != scoop.locked) {
             ctx.body = `refusing to unlock someone else's lock, for scoop[${p.scoop}]`;
             ctx.status = 409;
             return;
@@ -117,6 +124,21 @@ app.use(async ctx => {
     else
         return ctx.status = 404;
 });
+
+// unlock all scoops that have expired an owner
+function purge_locks() {
+    const iters  = db.get("running").map("iter").value();
+    const scoops = db.get("scoops").value();
+
+    for (let i = 0; i < scoops.length; i++) {
+        const owner = scoops[i].locked;
+
+        if (owner && !iters.includes(owner)) {
+            console.log(`purged lock for scoop #${i}`);
+            scoops[i].locked = false;
+        }
+    }
+}
 
 function serialize(obj) {
     let str = "";
