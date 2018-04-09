@@ -5,8 +5,11 @@ const axios = require("axios");
 const exec = require("child_process").exec;
 
 async function main(iter) {
+    // do a quick service check
     let res = await axios.get("http://localhost:3745/health-check")
                .catch(e => console.log(e.response.data));
+    if (!res) return;
+
     console.log(res.data);
 
     for (let i = 0; i < 4096; i++) {
@@ -53,8 +56,14 @@ async function main(iter) {
               if (link == "skip")
                   return link;
 
-              axios.post("http://localhost:3745/unlock", {scoop:i, link, iter})
+              return axios.post("http://localhost:3745/unlock", {scoop:i, link, iter})
                 .catch(e => console.log(e.response.data));
+          }).then(res => {
+              if (res == "skip")
+                  return res;
+
+              console.log(`removing ${fname}...`);
+              fs.unlinkSync(fname);
           });
     }
 }
