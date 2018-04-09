@@ -9,6 +9,8 @@
   "author": "Ryan Jacobs <ryan.mjacobs@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.18.0",
+    "es6-promise-pool": "^2.5.0",
     "koa": "^2.5.0",
     "koa-bodyparser": "^4.2.0",
     "koa-logger": "^3.2.0",

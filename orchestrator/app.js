@@ -5,6 +5,7 @@ const STAGGER_SIZE = 50;
 // misc
 const fs = require("fs");
 const pb = require("pretty-bytes");
+const exec = require("child_process").exec;
 
 // database
 const low = require("lowdb");
@@ -95,9 +96,8 @@ app.use(async (ctx,next) => {
     else if (req == "POST/lock") {
         const iter = parseInt(p.iter);
 
-        // only running jobs can place locks
         const job = db.get("running").find({iter}).value();
-        if (!job) {
+        if (!job && iter != -1) {
             ctx.status = 404;
             ctx.body = `iter ${iter} not found`;
             await next();
@@ -164,8 +164,20 @@ app.use(async (ctx,next) => {
         const size = pb(parseInt(ctx.request.header["content-length"]));
         console.log(`receiving tarball for iter #${iter} (${size})`);
 
-        const stream = fs.createWriteStream(`/tmp/scoops.${iter}.tar`);
+        const stream = fs.createWriteStream(`scoops.${iter}.tar`);
         ctx.req.pipe(stream);
+        ctx.req.on("end", function() {
+            console.log(`done writing tarball for iter ${iter}`);
+            console.log("  appending the new data...");
+        });
+
+        // upload tarballs (if the script deems it appropiate)
+        exec("bash upload_tarballs.sh", function(err, stdout, stderr) {
+            console.log("upload_tarballs.sh:", stdout);
+            if (err)
+                console.log("upload_tarballs.sh (stderr):", stderr);
+        });
+
         ctx.status = 200;
     }
 
