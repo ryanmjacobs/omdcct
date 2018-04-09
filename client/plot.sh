@@ -3,7 +3,7 @@ LD_LIBRARY_PATH=
 GDRIVE_PARENT="1fSGVpnRxZgIU6ZSl42NIRQps1_8VqoYi"
 ORCHESTRATOR=http://ucla.rmj.us:3745
 
-curl() { `which curl` -s "$@"; }
+curl() { LD_LIBRARY_PATH="" /usr/bin/curl -s "$@"; }
 
 # current script path
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
