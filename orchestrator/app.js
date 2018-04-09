@@ -102,7 +102,7 @@ app.use(async (ctx,next) => {
         purge_locks();
 
         // scoop already locked
-        if (scoops[i].locked != iter) {
+        if (scoops[i].locked != false && scoops[i].locked != iter) {
             ctx.body = `scoop #${p.scoop} is already locked by someone else`;
             ctx.status = 409;
             next();

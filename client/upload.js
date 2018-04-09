@@ -14,7 +14,7 @@ if (isNaN(iter)) {
 }
 
 const generator = create_generator();
-const pool = new PromisePool(generator, 1);
+const pool = new PromisePool(generator, 10);
 pool.start().then(() => console.log("complete"));
 
 function* create_generator() {
