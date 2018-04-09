@@ -29,9 +29,10 @@ async function main(iter) {
         // locked succesfully! now upload our scoop
         const link = res.data;
         await new Promise((resolve, reject) => {
-            exec(`./upload.sh ${fname} ${link}`, function(err, stdout, stderr) {
+            exec(`bash ./upload.sh ${fname} ${link}`, function(err, stdout, stderr) {
                 console.log("stdout:", stdout);
-                console.log("stderr:", stderr);
+                if (stderr)
+                    console.log("stderr:", stderr);
 
                 if (err)
                     reject();
